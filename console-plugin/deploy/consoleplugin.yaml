@@ -1,0 +1,22 @@
+apiVersion: console.openshift.io/v1
+kind: ConsolePlugin
+metadata:
+  name: redfish-insights-plugin
+spec:
+  displayName: "Firmware Insights"
+  backend:
+    type: Service
+    service:
+      name: redfish-insights-plugin
+      namespace: openshift-redfish-insights
+      port: 9443
+      basePath: "/"
+  proxy:
+    - alias: redfish-insights
+      authorize: true
+      endpoint:
+        type: Service
+        service:
+          name: openshift-redfish-insights
+          namespace: openshift-redfish-insights
+          port: 8080
