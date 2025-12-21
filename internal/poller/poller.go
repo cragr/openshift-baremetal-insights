@@ -8,6 +8,7 @@ import (
 
 	"github.com/cragr/openshift-redfish-insights/internal/catalog"
 	"github.com/cragr/openshift-redfish-insights/internal/discovery"
+	"github.com/cragr/openshift-redfish-insights/internal/metrics"
 	"github.com/cragr/openshift-redfish-insights/internal/models"
 	"github.com/cragr/openshift-redfish-insights/internal/redfish"
 	"github.com/cragr/openshift-redfish-insights/internal/store"
@@ -128,6 +129,7 @@ func (p *Poller) pollHost(ctx context.Context, host discovery.DiscoveredHost) {
 		log.Printf("Error polling %s: %v", host.Name, err)
 		node.Status = models.StatusUnknown
 		p.store.SetNode(node)
+		metrics.RecordScan(node.Name, false)
 		return
 	}
 
@@ -171,5 +173,6 @@ func (p *Poller) pollHost(ctx context.Context, host discovery.DiscoveredHost) {
 	}
 
 	p.store.SetNode(node)
+	metrics.RecordScan(node.Name, true)
 	log.Printf("Updated firmware inventory for %s: %d components", host.Name, len(firmware))
 }
