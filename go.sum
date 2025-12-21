@@ -1,2 +1,4 @@
 github.com/go-chi/chi/v5 v5.2.3 h1:WQIt9uxdsAbgIYgid+BpYc+liqQZGMHRaUwp0JUcvdE=
 github.com/go-chi/chi/v5 v5.2.3/go.mod h1:L2yAIGWB3H+phAw1NxKwWM+7eUH/lU8pOMm5hHcoops=
+github.com/stmcginnis/gofish v0.20.0 h1:hH2V2Qe898F2wWT1loApnkDUrXXiLKqbSlMaH3Y1n08=
+github.com/stmcginnis/gofish v0.20.0/go.mod h1:PzF5i8ecRG9A2ol8XT64npKUunyraJ+7t0kYMpQAtqU=
