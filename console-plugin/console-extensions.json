@@ -1,0 +1,72 @@
+[
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "firmware-overview",
+      "perspective": "admin",
+      "section": "compute",
+      "name": "Firmware Overview",
+      "href": "/firmware"
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "firmware-nodes",
+      "perspective": "admin",
+      "section": "compute",
+      "name": "Firmware Nodes",
+      "href": "/firmware/nodes"
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "firmware-updates",
+      "perspective": "admin",
+      "section": "compute",
+      "name": "Firmware Updates",
+      "href": "/firmware/updates"
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": true,
+      "path": "/firmware",
+      "component": {
+        "$codeRef": "FirmwareOverview"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": true,
+      "path": "/firmware/nodes",
+      "component": {
+        "$codeRef": "FirmwareNodes"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": false,
+      "path": "/firmware/nodes/:name",
+      "component": {
+        "$codeRef": "FirmwareNodeDetail"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": true,
+      "path": "/firmware/updates",
+      "component": {
+        "$codeRef": "FirmwareUpdates"
+      }
+    }
+  }
+]

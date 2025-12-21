@@ -1,0 +1,21 @@
+import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
+import { Node, NodesResponse, UpdatesResponse, FirmwareComponent } from '../types';
+
+const API_BASE = '/api/proxy/plugin/redfish-insights-plugin/redfish-insights';
+
+export const getNodes = async (): Promise<Node[]> => {
+  const response = (await consoleFetchJSON(`${API_BASE}/api/v1/nodes`)) as NodesResponse;
+  return response.nodes || [];
+};
+
+export const getNodeFirmware = async (name: string): Promise<FirmwareComponent[]> => {
+  const response = (await consoleFetchJSON(
+    `${API_BASE}/api/v1/nodes/${encodeURIComponent(name)}/firmware`
+  )) as { firmware: FirmwareComponent[] };
+  return response.firmware || [];
+};
+
+export const getUpdates = async (): Promise<UpdatesResponse> => {
+  const response = (await consoleFetchJSON(`${API_BASE}/api/v1/updates`)) as UpdatesResponse;
+  return { updates: response.updates || [] };
+};

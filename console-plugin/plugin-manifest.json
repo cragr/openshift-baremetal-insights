@@ -1,0 +1,15 @@
+{
+  "name": "redfish-insights-plugin",
+  "version": "0.1.0",
+  "displayName": "Firmware Insights",
+  "description": "View firmware inventory and update status for bare metal nodes",
+  "exposedModules": {
+    "FirmwareOverview": "./pages/FirmwareOverview",
+    "FirmwareNodes": "./pages/FirmwareNodes",
+    "FirmwareNodeDetail": "./pages/FirmwareNodeDetail",
+    "FirmwareUpdates": "./pages/FirmwareUpdates"
+  },
+  "dependencies": {
+    "@console/pluginAPI": "*"
+  }
+}
