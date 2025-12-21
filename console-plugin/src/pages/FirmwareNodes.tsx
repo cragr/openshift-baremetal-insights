@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import {
   Page,
   PageSection,
@@ -35,7 +35,7 @@ const formatDate = (dateStr: string): string => {
 };
 
 export const FirmwareNodes: React.FC = () => {
-  const navigate = useNavigate();
+  const history = useHistory();
   const [nodes, setNodes] = useState<Node[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -136,7 +136,7 @@ export const FirmwareNodes: React.FC = () => {
                 <Tr
                   key={node.name}
                   isClickable
-                  onRowClick={() => navigate(`/firmware/nodes/${node.name}`)}
+                  onRowClick={() => history.push(`/firmware/nodes/${node.name}`)}
                 >
                   <Td dataLabel="Name">{node.name}</Td>
                   <Td dataLabel="Model">{node.model}</Td>

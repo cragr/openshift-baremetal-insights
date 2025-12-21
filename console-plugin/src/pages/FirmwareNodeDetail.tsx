@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import {
   Page,
   PageSection,
@@ -29,7 +29,7 @@ const needsUpdate = (fw: FirmwareComponent): boolean =>
 
 export const FirmwareNodeDetail: React.FC = () => {
   const { name } = useParams<{ name: string }>();
-  const navigate = useNavigate();
+  const history = useHistory();
   const [node, setNode] = useState<Node | null>(null);
   const [firmware, setFirmware] = useState<FirmwareComponent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,7 +93,7 @@ export const FirmwareNodeDetail: React.FC = () => {
     <Page>
       <PageSection>
         <Breadcrumb>
-          <BreadcrumbItem onClick={() => navigate('/firmware/nodes')}>
+          <BreadcrumbItem onClick={() => history.push('/firmware/nodes')}>
             Firmware Nodes
           </BreadcrumbItem>
           <BreadcrumbItem isActive>{name}</BreadcrumbItem>

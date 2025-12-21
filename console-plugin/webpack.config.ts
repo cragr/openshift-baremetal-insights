@@ -1,8 +1,17 @@
 import * as path from 'path';
-import { Configuration } from 'webpack';
+import { fileURLToPath } from 'url';
+import type { Configuration } from 'webpack';
+import type { Configuration as DevServerConfiguration } from 'webpack-dev-server';
 import { ConsoleRemotePlugin } from '@openshift-console/dynamic-plugin-sdk-webpack';
 
-const config: Configuration = {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+interface WebpackConfig extends Configuration {
+  devServer?: DevServerConfiguration;
+}
+
+const config: WebpackConfig = {
   mode: 'development',
   entry: {},
   output: {
@@ -18,7 +27,12 @@ const config: Configuration = {
       {
         test: /\.(ts|tsx)$/,
         exclude: /node_modules/,
-        use: 'ts-loader',
+        use: {
+          loader: 'ts-loader',
+          options: {
+            transpileOnly: true,
+          },
+        },
       },
       {
         test: /\.css$/,

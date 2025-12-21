@@ -1,5 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Switch } from 'react-router-dom';
 import { FirmwareNodeDetail } from './FirmwareNodeDetail';
 import * as api from '../services/api';
 
@@ -41,9 +41,9 @@ describe('FirmwareNodeDetail', () => {
   it('renders node name', async () => {
     render(
       <MemoryRouter initialEntries={['/firmware/nodes/worker-0']}>
-        <Routes>
-          <Route path="/firmware/nodes/:name" element={<FirmwareNodeDetail />} />
-        </Routes>
+        <Switch>
+          <Route path="/firmware/nodes/:name" component={FirmwareNodeDetail} />
+        </Switch>
       </MemoryRouter>
     );
     await waitFor(() => {
@@ -54,9 +54,9 @@ describe('FirmwareNodeDetail', () => {
   it('displays firmware component', async () => {
     render(
       <MemoryRouter initialEntries={['/firmware/nodes/worker-0']}>
-        <Routes>
-          <Route path="/firmware/nodes/:name" element={<FirmwareNodeDetail />} />
-        </Routes>
+        <Switch>
+          <Route path="/firmware/nodes/:name" component={FirmwareNodeDetail} />
+        </Switch>
       </MemoryRouter>
     );
     await waitFor(() => {
@@ -70,9 +70,9 @@ describe('FirmwareNodeDetail', () => {
     (api.getNodes as jest.Mock).mockImplementation(() => new Promise(() => {}));
     render(
       <MemoryRouter initialEntries={['/firmware/nodes/worker-0']}>
-        <Routes>
-          <Route path="/firmware/nodes/:name" element={<FirmwareNodeDetail />} />
-        </Routes>
+        <Switch>
+          <Route path="/firmware/nodes/:name" component={FirmwareNodeDetail} />
+        </Switch>
       </MemoryRouter>
     );
     expect(screen.getByLabelText('Loading')).toBeInTheDocument();
@@ -82,9 +82,9 @@ describe('FirmwareNodeDetail', () => {
     (api.getNodes as jest.Mock).mockRejectedValue(new Error('Network error'));
     render(
       <MemoryRouter initialEntries={['/firmware/nodes/worker-0']}>
-        <Routes>
-          <Route path="/firmware/nodes/:name" element={<FirmwareNodeDetail />} />
-        </Routes>
+        <Switch>
+          <Route path="/firmware/nodes/:name" component={FirmwareNodeDetail} />
+        </Switch>
       </MemoryRouter>
     );
     await waitFor(() => {
@@ -96,9 +96,9 @@ describe('FirmwareNodeDetail', () => {
     (api.getNodes as jest.Mock).mockResolvedValue([]);
     render(
       <MemoryRouter initialEntries={['/firmware/nodes/nonexistent']}>
-        <Routes>
-          <Route path="/firmware/nodes/:name" element={<FirmwareNodeDetail />} />
-        </Routes>
+        <Switch>
+          <Route path="/firmware/nodes/:name" component={FirmwareNodeDetail} />
+        </Switch>
       </MemoryRouter>
     );
     await waitFor(() => {
