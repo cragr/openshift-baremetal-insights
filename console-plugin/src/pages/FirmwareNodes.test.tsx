@@ -25,6 +25,10 @@ describe('FirmwareNodes', () => {
     (api.getNodes as jest.Mock).mockResolvedValue(mockNodes);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders title', async () => {
     render(
       <MemoryRouter>
@@ -45,6 +49,41 @@ describe('FirmwareNodes', () => {
     await waitFor(() => {
       expect(screen.getByText('worker-0')).toBeInTheDocument();
       expect(screen.getByText('PowerEdge R640')).toBeInTheDocument();
+    });
+  });
+
+  it('displays loading spinner initially', () => {
+    (api.getNodes as jest.Mock).mockImplementation(() => new Promise(() => {}));
+    render(
+      <MemoryRouter>
+        <FirmwareNodes />
+      </MemoryRouter>
+    );
+    expect(screen.getByLabelText('Loading')).toBeInTheDocument();
+  });
+
+  it('displays error message on API failure', async () => {
+    (api.getNodes as jest.Mock).mockRejectedValue(new Error('Network error'));
+    render(
+      <MemoryRouter>
+        <FirmwareNodes />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByText('Error loading data')).toBeInTheDocument();
+      expect(screen.getByText('Network error')).toBeInTheDocument();
+    });
+  });
+
+  it('displays empty state when no nodes', async () => {
+    (api.getNodes as jest.Mock).mockResolvedValue([]);
+    render(
+      <MemoryRouter>
+        <FirmwareNodes />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByText('No nodes found')).toBeInTheDocument();
     });
   });
 });

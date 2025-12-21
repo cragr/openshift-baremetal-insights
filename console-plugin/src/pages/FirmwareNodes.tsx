@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Page,
@@ -12,6 +12,8 @@ import {
   Button,
   Spinner,
   Alert,
+  EmptyState,
+  EmptyStateBody,
 } from '@patternfly/react-core';
 import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
 import { SyncIcon } from '@patternfly/react-icons';
@@ -20,10 +22,21 @@ import { Node } from '../types';
 import { FirmwareStatusIcon } from '../components/FirmwareStatusIcon';
 import { UpdateBadge } from '../components/UpdateBadge';
 
+const formatDate = (dateStr: string): string => {
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    return date.toLocaleString();
+  } catch {
+    return 'Invalid date';
+  }
+};
+
 export const FirmwareNodes: React.FC = () => {
   const navigate = useNavigate();
   const [nodes, setNodes] = useState<Node[]>([]);
-  const [filteredNodes, setFilteredNodes] = useState<Node[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchValue, setSearchValue] = useState('');
@@ -33,7 +46,6 @@ export const FirmwareNodes: React.FC = () => {
     try {
       const data = await getNodes();
       setNodes(data);
-      setFilteredNodes(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch nodes');
     } finally {
@@ -45,21 +57,12 @@ export const FirmwareNodes: React.FC = () => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (searchValue) {
-      setFilteredNodes(
-        nodes.filter((n) =>
-          n.name.toLowerCase().includes(searchValue.toLowerCase())
-        )
-      );
-    } else {
-      setFilteredNodes(nodes);
-    }
+  const filteredNodes = useMemo(() => {
+    if (!searchValue) return nodes;
+    return nodes.filter((n) =>
+      n.name.toLowerCase().includes(searchValue.toLowerCase())
+    );
   }, [searchValue, nodes]);
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleString();
-  };
 
   if (loading) {
     return (
@@ -118,24 +121,36 @@ export const FirmwareNodes: React.FC = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {filteredNodes.map((node) => (
-              <Tr
-                key={node.name}
-                isClickable
-                onRowClick={() => navigate(`/firmware/nodes/${node.name}`)}
-              >
-                <Td dataLabel="Name">{node.name}</Td>
-                <Td dataLabel="Model">{node.model}</Td>
-                <Td dataLabel="Status">
-                  <FirmwareStatusIcon status={node.status} />
+            {filteredNodes.length === 0 ? (
+              <Tr>
+                <Td colSpan={6}>
+                  <EmptyState>
+                    <EmptyStateBody>
+                      {searchValue ? 'No nodes match your search' : 'No nodes found'}
+                    </EmptyStateBody>
+                  </EmptyState>
                 </Td>
-                <Td dataLabel="Firmware Count">{node.firmwareCount}</Td>
-                <Td dataLabel="Updates Available">
-                  <UpdateBadge count={node.updatesAvailable} />
-                </Td>
-                <Td dataLabel="Last Scanned">{formatDate(node.lastScanned)}</Td>
               </Tr>
-            ))}
+            ) : (
+              filteredNodes.map((node) => (
+                <Tr
+                  key={node.name}
+                  isClickable
+                  onRowClick={() => navigate(`/firmware/nodes/${node.name}`)}
+                >
+                  <Td dataLabel="Name">{node.name}</Td>
+                  <Td dataLabel="Model">{node.model}</Td>
+                  <Td dataLabel="Status">
+                    <FirmwareStatusIcon status={node.status} />
+                  </Td>
+                  <Td dataLabel="Firmware Count">{node.firmwareCount}</Td>
+                  <Td dataLabel="Updates Available">
+                    <UpdateBadge count={node.updatesAvailable} />
+                  </Td>
+                  <Td dataLabel="Last Scanned">{formatDate(node.lastScanned)}</Td>
+                </Tr>
+              ))
+            )}
           </Tbody>
         </Table>
       </PageSection>
