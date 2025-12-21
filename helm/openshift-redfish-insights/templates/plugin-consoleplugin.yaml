@@ -22,4 +22,4 @@ spec:
           name: {{ include "redfish-insights.fullname" . }}-backend
           namespace: {{ .Values.namespace.name }}
           port: {{ .Values.backend.service.port }}
-      authorize: true
+      authorization: UserToken
