@@ -43,6 +43,7 @@ func NewServer(s *store.Store, addr string) *Server {
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/nodes", srv.listNodes)
 		r.Get("/nodes/{name}/firmware", srv.getNodeFirmware)
+		r.Get("/updates", srv.listUpdates)
 		r.Get("/health", srv.health)
 	})
 

@@ -46,3 +46,21 @@ type BMCCredentials struct {
 	Username string
 	Password string
 }
+
+// CatalogEntry represents a firmware update available in Dell's catalog
+type CatalogEntry struct {
+	ComponentID   string `json:"componentId"`
+	ComponentType string `json:"componentType"`
+	SystemModelID string `json:"systemModelId"`
+	Version       string `json:"version"`
+	ReleaseDate   string `json:"releaseDate"`
+	Criticality   string `json:"criticality"` // "Critical", "Recommended", "Optional"
+	DownloadURL   string `json:"downloadUrl"`
+	FileName      string `json:"fileName"`
+	SizeMB        int    `json:"sizeMb"`
+}
+
+// CatalogKey creates a lookup key for catalog entries
+func CatalogKey(systemModel, componentID string) string {
+	return systemModel + "|" + componentID
+}
