@@ -1,0 +1,46 @@
+# helm/openshift-redfish-insights/values.yaml
+namespace:
+  create: true
+  name: openshift-redfish-insights
+
+backend:
+  image:
+    repository: quay.io/cragr/openshift-redfish-insights
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  config:
+    pollInterval: "30m"
+    catalogRefresh: "24h"
+    catalogUrl: "https://downloads.dell.com/catalog/Catalog.xml.gz"
+    logLevel: "info"
+  service:
+    port: 8080
+
+plugin:
+  image:
+    repository: quay.io/cragr/redfish-insights-plugin
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicas: 1
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "128Mi"
+      cpu: "100m"
+  service:
+    port: 9443
+
+metrics:
+  enabled: false
+  port: 8080
+  path: /metrics
