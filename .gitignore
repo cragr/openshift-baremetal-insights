@@ -26,3 +26,7 @@ dist/
 *.dll
 *.so
 *.dylib
+
+# Console plugin
+console-plugin/node_modules/
+console-plugin/dist/
