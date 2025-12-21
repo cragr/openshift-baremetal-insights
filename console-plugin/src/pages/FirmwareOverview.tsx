@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Page,
   PageSection,
@@ -35,10 +35,19 @@ export const FirmwareOverview: React.FC = () => {
     fetchData();
   }, []);
 
-  const totalNodes = nodes.length;
-  const nodesNeedingUpdate = nodes.filter((n) => n.status === 'needs-update').length;
-  const nodesUpToDate = nodes.filter((n) => n.status === 'up-to-date').length;
-  const totalUpdates = nodes.reduce((sum, n) => sum + n.updatesAvailable, 0);
+  const totalNodes = useMemo(() => nodes.length, [nodes]);
+  const nodesNeedingUpdate = useMemo(
+    () => nodes.filter((n) => n.status === 'needs-update').length,
+    [nodes]
+  );
+  const nodesUpToDate = useMemo(
+    () => nodes.filter((n) => n.status === 'up-to-date').length,
+    [nodes]
+  );
+  const totalUpdates = useMemo(
+    () => nodes.reduce((sum, n) => sum + n.updatesAvailable, 0),
+    [nodes]
+  );
 
   if (loading) {
     return (
