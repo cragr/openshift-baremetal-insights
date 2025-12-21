@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/cragr/openshift-redfish-insights/internal/store"
 )
@@ -47,8 +48,16 @@ func NewServer(s *store.Store, addr string) *Server {
 		r.Get("/health", srv.health)
 	})
 
+	r.Handle("/metrics", promhttp.Handler())
+	r.HandleFunc("/healthz", healthzHandler)
+
 	srv.router = r
 	return srv
+}
+
+func healthzHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ok"))
 }
 
 // Start starts the HTTP server

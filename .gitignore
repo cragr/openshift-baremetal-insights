@@ -30,3 +30,6 @@ dist/
 # Console plugin
 console-plugin/node_modules/
 console-plugin/dist/
+
+# Helm
+*.tgz

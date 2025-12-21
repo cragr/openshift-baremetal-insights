@@ -1,0 +1,14 @@
+# helm/openshift-redfish-insights/templates/backend-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "redfish-insights.fullname" . }}-backend
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "redfish-insights.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+data:
+  POLL_INTERVAL: {{ .Values.backend.config.pollInterval | quote }}
+  CATALOG_REFRESH: {{ .Values.backend.config.catalogRefresh | quote }}
+  CATALOG_URL: {{ .Values.backend.config.catalogUrl | quote }}
+  LOG_LEVEL: {{ .Values.backend.config.logLevel | quote }}
