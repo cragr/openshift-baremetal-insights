@@ -49,9 +49,15 @@ func NewServer(s *store.Store, addr string) *Server {
 	})
 
 	r.Handle("/metrics", promhttp.Handler())
+	r.HandleFunc("/healthz", healthzHandler)
 
 	srv.router = r
 	return srv
+}
+
+func healthzHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ok"))
 }
 
 // Start starts the HTTP server
