@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 
 	"github.com/cragr/openshift-redfish-insights/internal/store"
 )
@@ -31,6 +32,13 @@ func NewServer(s *store.Store, addr string) *Server {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.RequestID)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*"},
+		AllowedMethods:   []string{"GET", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Content-Type"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/nodes", srv.listNodes)
@@ -49,6 +57,7 @@ func (s *Server) Start() error {
 		Handler:      s.router,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
 
 	log.Printf("Starting API server on %s", s.addr)

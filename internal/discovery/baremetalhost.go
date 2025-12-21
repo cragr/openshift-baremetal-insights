@@ -3,6 +3,7 @@ package discovery
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/url"
 	"strings"
 
@@ -57,7 +58,7 @@ func (d *Discoverer) Discover(ctx context.Context) ([]DiscoveredHost, error) {
 	for _, item := range list.Items {
 		host, err := d.extractHostInfo(ctx, &item)
 		if err != nil {
-			// Log warning but continue with other hosts
+			log.Printf("Warning: Failed to extract host info for %s: %v", item.GetName(), err)
 			continue
 		}
 		hosts = append(hosts, *host)
