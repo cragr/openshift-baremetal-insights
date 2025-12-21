@@ -33,4 +33,30 @@ describe('API Service', () => {
       expect.stringContaining('/api/v1/updates')
     );
   });
+
+  it('getNodeFirmware properly encodes node names with special characters', async () => {
+    mockFetch.mockResolvedValue({ firmware: [] });
+    await getNodeFirmware('worker/node-1');
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/v1/nodes/worker%2Fnode-1/firmware')
+    );
+  });
+
+  it('getNodes handles missing nodes array', async () => {
+    mockFetch.mockResolvedValue({});
+    const result = await getNodes();
+    expect(result).toEqual([]);
+  });
+
+  it('getNodeFirmware handles missing firmware array', async () => {
+    mockFetch.mockResolvedValue({});
+    const result = await getNodeFirmware('worker-0');
+    expect(result).toEqual([]);
+  });
+
+  it('getUpdates handles missing updates array', async () => {
+    mockFetch.mockResolvedValue({});
+    const result = await getUpdates();
+    expect(result).toEqual({ updates: [] });
+  });
 });

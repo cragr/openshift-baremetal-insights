@@ -16,5 +16,6 @@ export const getNodeFirmware = async (name: string): Promise<FirmwareComponent[]
 };
 
 export const getUpdates = async (): Promise<UpdatesResponse> => {
-  return consoleFetchJSON<UpdatesResponse>(`${API_BASE}/api/v1/updates`);
+  const response = await consoleFetchJSON<UpdatesResponse>(`${API_BASE}/api/v1/updates`);
+  return { updates: response.updates || [] };
 };
