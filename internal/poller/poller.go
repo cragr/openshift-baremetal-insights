@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cragr/openshift-redfish-insights/internal/catalog"
 	"github.com/cragr/openshift-redfish-insights/internal/discovery"
 	"github.com/cragr/openshift-redfish-insights/internal/models"
 	"github.com/cragr/openshift-redfish-insights/internal/redfish"
@@ -17,6 +18,7 @@ type Poller struct {
 	discoverer *discovery.Discoverer
 	redfish    *redfish.Client
 	store      *store.Store
+	catalog    *catalog.Service
 	interval   time.Duration
 
 	mu      sync.Mutex
@@ -25,11 +27,12 @@ type Poller struct {
 }
 
 // New creates a new Poller
-func New(discoverer *discovery.Discoverer, redfishClient *redfish.Client, store *store.Store, interval time.Duration) *Poller {
+func New(discoverer *discovery.Discoverer, redfishClient *redfish.Client, store *store.Store, catalogSvc *catalog.Service, interval time.Duration) *Poller {
 	return &Poller{
 		discoverer: discoverer,
 		redfish:    redfishClient,
 		store:      store,
+		catalog:    catalogSvc,
 		interval:   interval,
 	}
 }
@@ -76,6 +79,13 @@ func (p *Poller) Stop() {
 
 func (p *Poller) poll(ctx context.Context) {
 	log.Println("Starting firmware poll...")
+
+	// Sync catalog if needed
+	if p.catalog != nil && p.catalog.NeedsSync() {
+		if err := p.catalog.Sync(ctx); err != nil {
+			log.Printf("Catalog sync error: %v", err)
+		}
+	}
 
 	hosts, err := p.discoverer.Discover(ctx)
 	if err != nil {
@@ -130,6 +140,15 @@ func (p *Poller) pollHost(ctx context.Context, host discovery.DiscoveredHost) {
 		if !discovery.IsDellHardware(node.Manufacturer) {
 			log.Printf("Skipping non-Dell hardware: %s (%s)", host.Name, node.Manufacturer)
 			return
+		}
+	}
+
+	// Enrich firmware with available versions from catalog
+	if p.catalog != nil {
+		for i := range firmware {
+			if version, found := p.catalog.GetLatestVersion(node.Model, firmware[i].ComponentType); found {
+				firmware[i].AvailableVersion = version
+			}
 		}
 	}
 
