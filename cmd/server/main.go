@@ -15,6 +15,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/cragr/openshift-redfish-insights/internal/api"
+	"github.com/cragr/openshift-redfish-insights/internal/catalog"
 	"github.com/cragr/openshift-redfish-insights/internal/discovery"
 	"github.com/cragr/openshift-redfish-insights/internal/poller"
 	"github.com/cragr/openshift-redfish-insights/internal/redfish"
@@ -28,6 +29,8 @@ func main() {
 	addr := getEnv("LISTEN_ADDR", ":8080")
 	namespace := getEnv("WATCH_NAMESPACE", "openshift-machine-api")
 	pollInterval := getEnvDuration("POLL_INTERVAL", 30*time.Minute)
+	catalogURL := getEnv("CATALOG_URL", "https://downloads.dell.com/catalog/Catalog.xml.gz")
+	catalogTTL := getEnvDuration("CATALOG_TTL", 24*time.Hour)
 
 	// Create Kubernetes clients
 	config, err := getKubeConfig()
@@ -49,7 +52,8 @@ func main() {
 	dataStore := store.New()
 	redfishClient := redfish.NewClient()
 	discoverer := discovery.NewDiscoverer(dynamicClient, kubeClient, namespace)
-	poll := poller.New(discoverer, redfishClient, dataStore, pollInterval)
+	catalogSvc := catalog.NewService(catalogURL, catalogTTL)
+	poll := poller.New(discoverer, redfishClient, dataStore, catalogSvc, pollInterval)
 	server := api.NewServer(dataStore, addr)
 
 	// Start poller in background
@@ -69,7 +73,7 @@ func main() {
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	defer signal.Stop(sigCh)
 
-	log.Printf("Server ready - API: %s, Namespace: %s, Poll Interval: %v", addr, namespace, pollInterval)
+	log.Printf("Server ready - API: %s, Namespace: %s, Poll Interval: %v, Catalog TTL: %v", addr, namespace, pollInterval, catalogTTL)
 
 	select {
 	case err := <-serverErr:
