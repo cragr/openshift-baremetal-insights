@@ -16,4 +16,9 @@ describe('FirmwareStatusIcon', () => {
     render(<FirmwareStatusIcon status="unknown" />);
     expect(screen.getByText('Unknown')).toBeInTheDocument();
   });
+
+  it('renders error icon for auth-failed', () => {
+    render(<FirmwareStatusIcon status="auth-failed" />);
+    expect(screen.getByText('Auth failed')).toBeInTheDocument();
+  });
 });

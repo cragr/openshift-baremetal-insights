@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { Label } from '@patternfly/react-core';
 
 interface UpdateBadgeProps {
