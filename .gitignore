@@ -1,0 +1,28 @@
+# Worktrees
+.worktrees/
+
+# Claude local settings
+.claude/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Go
+bin/
+vendor/
+
+# Node
+node_modules/
+dist/
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
