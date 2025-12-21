@@ -41,3 +41,18 @@ func TestFirmwareComponent(t *testing.T) {
 		t.Error("expected firmware to not need update when versions match")
 	}
 }
+
+func TestCatalogEntry(t *testing.T) {
+	entry := CatalogEntry{
+		ComponentID:   "BIOS",
+		SystemModelID: "PowerEdge R640",
+		Version:       "2.19.1",
+		ReleaseDate:   "2024-01-15",
+		Criticality:   "Recommended",
+		DownloadURL:   "https://downloads.dell.com/FOLDER123/BIOS_ABC123.EXE",
+	}
+
+	if entry.ComponentID != "BIOS" {
+		t.Errorf("expected component ID BIOS, got %s", entry.ComponentID)
+	}
+}
