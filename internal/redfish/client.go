@@ -240,6 +240,11 @@ func (c *Client) GetThermalData(ctx context.Context, bmcAddress, username, passw
 		return nil, nil, fmt.Errorf("failed to get thermal: %w", err)
 	}
 
+	// Some chassis don't have thermal data
+	if thermal == nil {
+		return nil, nil, fmt.Errorf("thermal data not available")
+	}
+
 	detail := &models.ThermalDetail{
 		Temperatures: make([]models.ThermalReading, 0),
 		Fans:         make([]models.FanReading, 0),
@@ -320,6 +325,11 @@ func (c *Client) GetPowerData(ctx context.Context, bmcAddress, username, passwor
 	power, err := chassis[0].Power()
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to get power: %w", err)
+	}
+
+	// Some chassis don't have power data
+	if power == nil {
+		return nil, nil, fmt.Errorf("power data not available")
 	}
 
 	detail := &models.PowerDetail{
