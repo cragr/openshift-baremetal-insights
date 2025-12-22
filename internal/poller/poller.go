@@ -19,6 +19,7 @@ type Poller struct {
 	discoverer *discovery.Discoverer
 	redfish    *redfish.Client
 	store      *store.Store
+	eventStore *store.EventStore
 	catalog    *catalog.Service
 	interval   time.Duration
 
@@ -28,11 +29,12 @@ type Poller struct {
 }
 
 // New creates a new Poller
-func New(discoverer *discovery.Discoverer, redfishClient *redfish.Client, store *store.Store, catalogSvc *catalog.Service, interval time.Duration) *Poller {
+func New(discoverer *discovery.Discoverer, redfishClient *redfish.Client, store *store.Store, eventStore *store.EventStore, catalogSvc *catalog.Service, interval time.Duration) *Poller {
 	return &Poller{
 		discoverer: discoverer,
 		redfish:    redfishClient,
 		store:      store,
+		eventStore: eventStore,
 		catalog:    catalogSvc,
 		interval:   interval,
 	}
@@ -171,6 +173,62 @@ func (p *Poller) pollHost(ctx context.Context, host discovery.DiscoveredHost) {
 		node.Status = models.StatusNeedsUpdate
 	} else {
 		node.Status = models.StatusUpToDate
+	}
+
+	// Get system health
+	healthRollup, overallHealth, err := p.redfish.GetSystemHealth(
+		ctx,
+		host.BMCAddress,
+		host.Credentials.Username,
+		host.Credentials.Password,
+	)
+	if err != nil {
+		log.Printf("Error getting health for %s: %v", host.Name, err)
+	} else {
+		node.Health = overallHealth
+		node.HealthRollup = healthRollup
+	}
+
+	// Get thermal data
+	_, thermalSummary, err := p.redfish.GetThermalData(
+		ctx,
+		host.BMCAddress,
+		host.Credentials.Username,
+		host.Credentials.Password,
+	)
+	if err != nil {
+		log.Printf("Error getting thermal data for %s: %v", host.Name, err)
+	} else {
+		node.ThermalSummary = thermalSummary
+	}
+
+	// Get power data
+	_, powerSummary, err := p.redfish.GetPowerData(
+		ctx,
+		host.BMCAddress,
+		host.Credentials.Username,
+		host.Credentials.Password,
+	)
+	if err != nil {
+		log.Printf("Error getting power data for %s: %v", host.Name, err)
+	} else {
+		node.PowerSummary = powerSummary
+	}
+
+	// Get events and add to event store
+	if p.eventStore != nil {
+		events, err := p.redfish.GetEvents(
+			ctx,
+			host.BMCAddress,
+			host.Credentials.Username,
+			host.Credentials.Password,
+			50, // limit to 50 most recent events
+		)
+		if err != nil {
+			log.Printf("Error getting events for %s: %v", host.Name, err)
+		} else {
+			p.eventStore.AddEvents(host.Name, events)
+		}
 	}
 
 	p.store.SetNode(node)
