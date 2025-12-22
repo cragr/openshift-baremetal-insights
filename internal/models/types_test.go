@@ -56,3 +56,32 @@ func TestCatalogEntry(t *testing.T) {
 		t.Errorf("expected component ID BIOS, got %s", entry.ComponentID)
 	}
 }
+
+func TestHealthStatus_String(t *testing.T) {
+	tests := []struct {
+		status HealthStatus
+		want   string
+	}{
+		{HealthOK, "OK"},
+		{HealthWarning, "Warning"},
+		{HealthCritical, "Critical"},
+		{HealthUnknown, "Unknown"},
+	}
+	for _, tt := range tests {
+		if got := string(tt.status); got != tt.want {
+			t.Errorf("HealthStatus = %v, want %v", got, tt.want)
+		}
+	}
+}
+
+func TestComponentHealth_IsHealthy(t *testing.T) {
+	healthy := ComponentHealth{Status: HealthOK}
+	unhealthy := ComponentHealth{Status: HealthCritical}
+
+	if !healthy.IsHealthy() {
+		t.Error("expected healthy component to return true")
+	}
+	if unhealthy.IsHealthy() {
+		t.Error("expected unhealthy component to return false")
+	}
+}
