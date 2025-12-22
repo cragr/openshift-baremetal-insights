@@ -25,6 +25,11 @@ type Node struct {
 	FirmwareCount    int                 `json:"firmwareCount"`
 	UpdatesAvailable int                 `json:"updatesAvailable"`
 	Firmware         []FirmwareComponent `json:"firmware,omitempty"`
+	// Health fields
+	Health           HealthStatus        `json:"health,omitempty"`
+	HealthRollup     *HealthRollup       `json:"healthRollup,omitempty"`
+	ThermalSummary   *ThermalSummary     `json:"thermalSummary,omitempty"`
+	PowerSummary     *PowerSummary       `json:"powerSummary,omitempty"`
 }
 
 // FirmwareComponent represents a single firmware component on a server
