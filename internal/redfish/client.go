@@ -4,10 +4,12 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/stmcginnis/gofish"
+	"github.com/stmcginnis/gofish/common"
 	"github.com/stmcginnis/gofish/redfish"
 
 	"github.com/cragr/openshift-redfish-insights/internal/models"
@@ -155,17 +157,34 @@ func contains(s string, substrs ...string) bool {
 	return false
 }
 
-func parseHealthStatus(s string) models.HealthStatus {
-	switch s {
-	case "OK":
+func parseHealthStatus(h common.Health) models.HealthStatus {
+	switch h {
+	case common.OKHealth:
 		return models.HealthOK
-	case "Warning":
+	case common.WarningHealth:
 		return models.HealthWarning
-	case "Critical":
+	case common.CriticalHealth:
 		return models.HealthCritical
 	default:
 		return models.HealthUnknown
 	}
+}
+
+// aggregateHealth returns the worst health status from a slice
+func aggregateHealth(statuses []models.HealthStatus) models.HealthStatus {
+	worst := models.HealthOK
+	for _, s := range statuses {
+		if s == models.HealthCritical {
+			return models.HealthCritical
+		}
+		if s == models.HealthWarning {
+			worst = models.HealthWarning
+		}
+		if s == models.HealthUnknown && worst == models.HealthOK {
+			worst = models.HealthUnknown
+		}
+	}
+	return worst
 }
 
 // GetSystemHealth fetches health rollup from Redfish Systems endpoint
@@ -195,7 +214,7 @@ func (c *Client) GetSystemHealth(ctx context.Context, bmcAddress, username, pass
 	}
 
 	sys := systems[0]
-	overallHealth := parseHealthStatus(string(sys.Status.Health))
+	overallHealth := parseHealthStatus(sys.Status.Health)
 
 	rollup := &models.HealthRollup{
 		Processors:    models.HealthUnknown,
@@ -204,6 +223,100 @@ func (c *Client) GetSystemHealth(ctx context.Context, bmcAddress, username, pass
 		Fans:          models.HealthUnknown,
 		Storage:       models.HealthUnknown,
 		Network:       models.HealthUnknown,
+	}
+
+	// Get Processor health from /redfish/v1/Systems/{systemId}/Processors
+	processors, err := sys.Processors()
+	if err == nil && len(processors) > 0 {
+		var procStatuses []models.HealthStatus
+		for _, proc := range processors {
+			procStatuses = append(procStatuses, parseHealthStatus(proc.Status.Health))
+		}
+		rollup.Processors = aggregateHealth(procStatuses)
+	} else if err != nil {
+		log.Printf("Failed to get processors: %v", err)
+	}
+
+	// Get Memory health from /redfish/v1/Systems/{systemId}/Memory
+	memory, err := sys.Memory()
+	if err == nil && len(memory) > 0 {
+		var memStatuses []models.HealthStatus
+		for _, mem := range memory {
+			memStatuses = append(memStatuses, parseHealthStatus(mem.Status.Health))
+		}
+		rollup.Memory = aggregateHealth(memStatuses)
+	} else if err != nil {
+		log.Printf("Failed to get memory: %v", err)
+	}
+
+	// Get Storage health from /redfish/v1/Systems/{systemId}/Storage
+	storage, err := sys.Storage()
+	if err == nil && len(storage) > 0 {
+		var storageStatuses []models.HealthStatus
+		for _, stor := range storage {
+			storageStatuses = append(storageStatuses, parseHealthStatus(stor.Status.Health))
+		}
+		rollup.Storage = aggregateHealth(storageStatuses)
+	} else if err != nil {
+		log.Printf("Failed to get storage: %v", err)
+	}
+
+	// Get Network health from EthernetInterfaces
+	ethInterfaces, err := sys.EthernetInterfaces()
+	if err == nil && len(ethInterfaces) > 0 {
+		var netStatuses []models.HealthStatus
+		for _, eth := range ethInterfaces {
+			netStatuses = append(netStatuses, parseHealthStatus(eth.Status.Health))
+		}
+		rollup.Network = aggregateHealth(netStatuses)
+	} else if err != nil {
+		log.Printf("Failed to get ethernet interfaces: %v", err)
+	}
+
+	// Get Chassis for fans and power supplies
+	chassis, err := service.Chassis()
+	if err == nil && len(chassis) > 0 {
+		ch := chassis[0]
+
+		// Try to get fans from ThermalSubsystem first, then legacy Thermal
+		fans, err := ch.Fans()
+		if err == nil && len(fans) > 0 {
+			var fanStatuses []models.HealthStatus
+			for _, fan := range fans {
+				fanStatuses = append(fanStatuses, parseHealthStatus(fan.Status.Health))
+			}
+			rollup.Fans = aggregateHealth(fanStatuses)
+		} else {
+			// Fall back to legacy Thermal endpoint
+			thermal, err := ch.Thermal()
+			if err == nil && thermal != nil && len(thermal.Fans) > 0 {
+				var fanStatuses []models.HealthStatus
+				for _, fan := range thermal.Fans {
+					fanStatuses = append(fanStatuses, parseHealthStatus(fan.Status.Health))
+				}
+				rollup.Fans = aggregateHealth(fanStatuses)
+			}
+		}
+
+		// Try to get power supplies from PowerSubsystem first, then legacy Power
+		psus, err := ch.PowerSupplies()
+		if err == nil && len(psus) > 0 {
+			var psuStatuses []models.HealthStatus
+			for _, psu := range psus {
+				psuStatuses = append(psuStatuses, parseHealthStatus(psu.Status.Health))
+			}
+			rollup.PowerSupplies = aggregateHealth(psuStatuses)
+		} else {
+			// Fall back to legacy Power endpoint
+			power, err := ch.Power()
+			if err == nil && power != nil && len(power.PowerSupplies) > 0 {
+				var psuStatuses []models.HealthStatus
+				for _, psu := range power.PowerSupplies {
+					psuStatuses = append(psuStatuses, parseHealthStatus(psu.Status.Health))
+				}
+				rollup.PowerSupplies = aggregateHealth(psuStatuses)
+			}
+		}
 	}
 
 	return rollup, overallHealth, nil
@@ -235,14 +348,18 @@ func (c *Client) GetThermalData(ctx context.Context, bmcAddress, username, passw
 		return nil, nil, fmt.Errorf("no chassis found")
 	}
 
-	thermal, err := chassis[0].Thermal()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get thermal: %w", err)
+	// Find the main system chassis (not enclosure or other types)
+	var mainChassis *redfish.Chassis
+	for _, ch := range chassis {
+		if ch.ChassisType == redfish.RackMountChassisType ||
+			ch.ChassisType == redfish.BladeChassisType ||
+			ch.ChassisType == redfish.StandAloneChassisType {
+			mainChassis = ch
+			break
+		}
 	}
-
-	// Some chassis don't have thermal data
-	if thermal == nil {
-		return nil, nil, fmt.Errorf("thermal data not available")
+	if mainChassis == nil {
+		mainChassis = chassis[0]
 	}
 
 	detail := &models.ThermalDetail{
@@ -251,45 +368,107 @@ func (c *Client) GetThermalData(ctx context.Context, bmcAddress, username, passw
 	}
 
 	var maxTemp, inletTemp int
-	for _, t := range thermal.Temperatures {
-		reading := models.ThermalReading{
-			Name:   t.Name,
-			TempC:  int(t.ReadingCelsius),
-			Status: parseHealthStatus(string(t.Status.Health)),
-		}
-		detail.Temperatures = append(detail.Temperatures, reading)
+	fansHealthy := 0
+	totalFans := 0
 
-		if int(t.ReadingCelsius) > maxTemp {
-			maxTemp = int(t.ReadingCelsius)
+	// Try new ThermalSubsystem API first
+	thermalSub, err := mainChassis.ThermalSubsystem()
+	if err == nil && thermalSub != nil {
+		// Get thermal metrics for temperatures
+		metrics, err := thermalSub.ThermalMetrics()
+		if err == nil && metrics != nil {
+			for _, temp := range metrics.TemperatureReadingsCelsius {
+				reading := models.ThermalReading{
+					Name:   temp.DeviceName,
+					TempC:  int(temp.Reading),
+					Status: models.HealthOK, // ThermalMetrics doesn't have per-sensor status
+				}
+				detail.Temperatures = append(detail.Temperatures, reading)
+
+				if int(temp.Reading) > maxTemp {
+					maxTemp = int(temp.Reading)
+				}
+				if contains(temp.DeviceName, "Inlet", "Ambient", "System Board Inlet") {
+					inletTemp = int(temp.Reading)
+				}
+			}
 		}
-		if contains(t.Name, "Inlet", "Ambient") {
-			inletTemp = int(t.ReadingCelsius)
+
+		// Get fans from ThermalSubsystem
+		fans, err := thermalSub.Fans()
+		if err == nil {
+			for _, fan := range fans {
+				status := parseHealthStatus(fan.Status.Health)
+				reading := models.FanReading{
+					Name:   fan.Name,
+					RPM:    int(fan.SpeedPercent.Reading),
+					Status: status,
+				}
+				detail.Fans = append(detail.Fans, reading)
+				totalFans++
+				if status == models.HealthOK {
+					fansHealthy++
+				}
+			}
 		}
 	}
 
-	fansHealthy := 0
-	for _, f := range thermal.Fans {
-		status := parseHealthStatus(string(f.Status.Health))
-		reading := models.FanReading{
-			Name:   f.Name,
-			RPM:    int(f.Reading),
-			Status: status,
+	// Fall back to legacy Thermal endpoint if no data from ThermalSubsystem
+	if len(detail.Temperatures) == 0 || len(detail.Fans) == 0 {
+		thermal, err := mainChassis.Thermal()
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get thermal data: %w", err)
 		}
-		detail.Fans = append(detail.Fans, reading)
-		if status == models.HealthOK {
-			fansHealthy++
+		if thermal == nil {
+			return nil, nil, fmt.Errorf("thermal data not available")
+		}
+
+		// Get temperatures from legacy endpoint
+		if len(detail.Temperatures) == 0 {
+			for _, t := range thermal.Temperatures {
+				reading := models.ThermalReading{
+					Name:   t.Name,
+					TempC:  int(t.ReadingCelsius),
+					Status: parseHealthStatus(t.Status.Health),
+				}
+				detail.Temperatures = append(detail.Temperatures, reading)
+
+				if int(t.ReadingCelsius) > maxTemp {
+					maxTemp = int(t.ReadingCelsius)
+				}
+				if contains(t.Name, "Inlet", "Ambient", "System Board Inlet") {
+					inletTemp = int(t.ReadingCelsius)
+				}
+			}
+		}
+
+		// Get fans from legacy endpoint
+		if len(detail.Fans) == 0 {
+			for _, f := range thermal.Fans {
+				status := parseHealthStatus(f.Status.Health)
+				reading := models.FanReading{
+					Name:   f.Name,
+					RPM:    int(f.Reading),
+					Status: status,
+				}
+				detail.Fans = append(detail.Fans, reading)
+				totalFans++
+				if status == models.HealthOK {
+					fansHealthy++
+				}
+			}
 		}
 	}
 
 	summary := &models.ThermalSummary{
 		InletTempC:  inletTemp,
 		MaxTempC:    maxTemp,
-		FanCount:    len(thermal.Fans),
+		FanCount:    totalFans,
 		FansHealthy: fansHealthy,
 		Status:      models.HealthOK,
 	}
 
-	if fansHealthy < len(thermal.Fans) {
+	if totalFans > 0 && fansHealthy < totalFans {
 		summary.Status = models.HealthWarning
 	}
 
@@ -322,54 +501,101 @@ func (c *Client) GetPowerData(ctx context.Context, bmcAddress, username, passwor
 		return nil, nil, fmt.Errorf("no chassis found")
 	}
 
-	power, err := chassis[0].Power()
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get power: %w", err)
+	// Find the main system chassis
+	var mainChassis *redfish.Chassis
+	for _, ch := range chassis {
+		if ch.ChassisType == redfish.RackMountChassisType ||
+			ch.ChassisType == redfish.BladeChassisType ||
+			ch.ChassisType == redfish.StandAloneChassisType {
+			mainChassis = ch
+			break
+		}
 	}
-
-	// Some chassis don't have power data
-	if power == nil {
-		return nil, nil, fmt.Errorf("power data not available")
+	if mainChassis == nil {
+		mainChassis = chassis[0]
 	}
 
 	detail := &models.PowerDetail{
 		PSUs: make([]models.PSUReading, 0),
 	}
 
-	// Get current power consumption
-	if len(power.PowerControl) > 0 {
-		detail.CurrentWatts = int(power.PowerControl[0].PowerConsumedWatts)
+	psusHealthy := 0
+	totalPSUs := 0
+
+	// Try new PowerSubsystem API first
+	powerSub, err := mainChassis.PowerSubsystem()
+	if err == nil && powerSub != nil {
+		// Get power supplies from PowerSubsystem
+		psus, err := mainChassis.PowerSupplies()
+		if err == nil {
+			for _, psu := range psus {
+				status := parseHealthStatus(psu.Status.Health)
+				reading := models.PSUReading{
+					Name:      psu.Name,
+					Status:    status,
+					CapacityW: int(psu.PowerCapacityWatts),
+				}
+				detail.PSUs = append(detail.PSUs, reading)
+				totalPSUs++
+				if status == models.HealthOK {
+					psusHealthy++
+				}
+			}
+		}
+
+		// Get power consumption from EnvironmentMetrics
+		envMetrics, err := mainChassis.EnvironmentMetrics()
+		if err == nil && envMetrics != nil {
+			detail.CurrentWatts = int(envMetrics.PowerWatts.Reading)
+		}
 	}
 
-	psusHealthy := 0
-	for _, psu := range power.PowerSupplies {
-		status := parseHealthStatus(string(psu.Status.Health))
-		reading := models.PSUReading{
-			Name:      psu.Name,
-			Status:    status,
-			CapacityW: int(psu.PowerCapacityWatts),
+	// Fall back to legacy Power endpoint if no data
+	if len(detail.PSUs) == 0 {
+		power, err := mainChassis.Power()
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to get power data: %w", err)
 		}
-		detail.PSUs = append(detail.PSUs, reading)
-		if status == models.HealthOK {
-			psusHealthy++
+		if power == nil {
+			return nil, nil, fmt.Errorf("power data not available")
+		}
+
+		// Get current power consumption from legacy endpoint
+		if detail.CurrentWatts == 0 && len(power.PowerControl) > 0 {
+			detail.CurrentWatts = int(power.PowerControl[0].PowerConsumedWatts)
+		}
+
+		// Get PSUs from legacy endpoint
+		for _, psu := range power.PowerSupplies {
+			status := parseHealthStatus(psu.Status.Health)
+			reading := models.PSUReading{
+				Name:      psu.Name,
+				Status:    status,
+				CapacityW: int(psu.PowerCapacityWatts),
+			}
+			detail.PSUs = append(detail.PSUs, reading)
+			totalPSUs++
+			if status == models.HealthOK {
+				psusHealthy++
+			}
 		}
 	}
 
 	redundancy := "Full"
-	if psusHealthy < len(power.PowerSupplies) {
+	if totalPSUs > 0 && psusHealthy < totalPSUs {
 		redundancy = "Lost"
 	}
 	detail.Redundancy = redundancy
 
 	summary := &models.PowerSummary{
 		CurrentWatts: detail.CurrentWatts,
-		PSUCount:     len(power.PowerSupplies),
+		PSUCount:     totalPSUs,
 		PSUsHealthy:  psusHealthy,
 		Redundancy:   redundancy,
 		Status:       models.HealthOK,
 	}
 
-	if psusHealthy < len(power.PowerSupplies) {
+	if totalPSUs > 0 && psusHealthy < totalPSUs {
 		summary.Status = models.HealthCritical
 	}
 

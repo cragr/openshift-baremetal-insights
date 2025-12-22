@@ -3,6 +3,8 @@ package redfish
 import (
 	"testing"
 
+	"github.com/stmcginnis/gofish/common"
+
 	"github.com/cragr/openshift-redfish-insights/internal/models"
 )
 
@@ -48,12 +50,12 @@ func TestClient_ParseFirmwareInventory(t *testing.T) {
 
 func TestParseHealthStatus(t *testing.T) {
 	tests := []struct {
-		input string
+		input common.Health
 		want  models.HealthStatus
 	}{
-		{"OK", models.HealthOK},
-		{"Warning", models.HealthWarning},
-		{"Critical", models.HealthCritical},
+		{common.OKHealth, models.HealthOK},
+		{common.WarningHealth, models.HealthWarning},
+		{common.CriticalHealth, models.HealthCritical},
 		{"", models.HealthUnknown},
 		{"Unknown", models.HealthUnknown},
 	}
