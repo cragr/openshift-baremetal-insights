@@ -31,6 +31,8 @@ func main() {
 	pollInterval := getEnvDuration("POLL_INTERVAL", 30*time.Minute)
 	catalogURL := getEnv("CATALOG_URL", "https://downloads.dell.com/catalog/Catalog.xml.gz")
 	catalogTTL := getEnvDuration("CATALOG_TTL", 24*time.Hour)
+	tlsCertFile := getEnv("TLS_CERT_FILE", "")
+	tlsKeyFile := getEnv("TLS_KEY_FILE", "")
 
 	// Create Kubernetes clients
 	config, err := getKubeConfig()
@@ -54,7 +56,7 @@ func main() {
 	discoverer := discovery.NewDiscoverer(dynamicClient, kubeClient, namespace)
 	catalogSvc := catalog.NewService(catalogURL, catalogTTL)
 	poll := poller.New(discoverer, redfishClient, dataStore, catalogSvc, pollInterval)
-	server := api.NewServer(dataStore, addr)
+	server := api.NewServer(dataStore, addr, tlsCertFile, tlsKeyFile)
 
 	// Start poller in background
 	ctx, cancel := context.WithCancel(context.Background())

@@ -23,23 +23,38 @@ spec:
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
           imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
           ports:
-            - name: http
+            - name: https
               containerPort: {{ .Values.backend.service.port }}
               protocol: TCP
+          env:
+            - name: TLS_CERT_FILE
+              value: /var/serving-cert/tls.crt
+            - name: TLS_KEY_FILE
+              value: /var/serving-cert/tls.key
           envFrom:
             - configMapRef:
                 name: {{ include "redfish-insights.fullname" . }}-backend
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
+          volumeMounts:
+            - name: backend-serving-cert
+              mountPath: /var/serving-cert
+              readOnly: true
           livenessProbe:
             httpGet:
               path: /healthz
-              port: http
+              port: https
+              scheme: HTTPS
             initialDelaySeconds: 10
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: /healthz
-              port: http
+              port: https
+              scheme: HTTPS
             initialDelaySeconds: 5
             periodSeconds: 10
+      volumes:
+        - name: backend-serving-cert
+          secret:
+            secretName: {{ include "redfish-insights.fullname" . }}-backend-cert

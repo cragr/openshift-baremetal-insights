@@ -16,17 +16,21 @@ import (
 
 // Server is the REST API server
 type Server struct {
-	store  *store.Store
-	router *chi.Mux
-	addr   string
-	server *http.Server
+	store    *store.Store
+	router   *chi.Mux
+	addr     string
+	server   *http.Server
+	certFile string
+	keyFile  string
 }
 
 // NewServer creates a new API server
-func NewServer(s *store.Store, addr string) *Server {
+func NewServer(s *store.Store, addr, certFile, keyFile string) *Server {
 	srv := &Server{
-		store: s,
-		addr:  addr,
+		store:    s,
+		addr:     addr,
+		certFile: certFile,
+		keyFile:  keyFile,
 	}
 
 	r := chi.NewRouter()
@@ -68,6 +72,11 @@ func (s *Server) Start() error {
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  60 * time.Second,
+	}
+
+	if s.certFile != "" && s.keyFile != "" {
+		log.Printf("Starting API server on %s with TLS", s.addr)
+		return s.server.ListenAndServeTLS(s.certFile, s.keyFile)
 	}
 
 	log.Printf("Starting API server on %s", s.addr)
