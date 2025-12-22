@@ -153,7 +153,7 @@ console-plugin/
     "services": [{
       "alias": "redfish-insights",
       "serviceName": "openshift-redfish-insights",
-      "serviceNamespace": "openshift-redfish-insights",
+      "serviceNamespace": "redfish-insights",
       "servicePort": 8080
     }]
   }
@@ -190,7 +190,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redfish-insights-plugin
-  namespace: openshift-redfish-insights
+  namespace: redfish-insights
 spec:
   replicas: 1
   selector:
@@ -236,7 +236,7 @@ spec:
     type: Service
     service:
       name: redfish-insights-plugin
-      namespace: openshift-redfish-insights
+      namespace: redfish-insights
       port: 9443
       basePath: "/"
 ```

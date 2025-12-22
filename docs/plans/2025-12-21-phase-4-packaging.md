@@ -756,10 +756,10 @@ helm-package:
 
 helm-install:
 	helm upgrade --install redfish-insights helm/openshift-redfish-insights/ \
-		--namespace openshift-redfish-insights --create-namespace
+		--namespace redfish-insights --create-namespace
 
 helm-uninstall:
-	helm uninstall redfish-insights --namespace openshift-redfish-insights
+	helm uninstall redfish-insights --namespace redfish-insights
 
 # Combined targets
 all: build plugin-build
@@ -851,7 +851,7 @@ Kubernetes-native firmware visibility for Dell servers in OpenShift. Discovers b
 
 # Install from local chart
 helm upgrade --install redfish-insights helm/openshift-redfish-insights/ \
-  --namespace openshift-redfish-insights \
+  --namespace redfish-insights \
   --create-namespace
 
 # Enable the console plugin
@@ -864,7 +864,7 @@ oc patch consoles.operator.openshift.io cluster \
 
 ```bash
 # Check pods are running
-oc get pods -n openshift-redfish-insights
+oc get pods -n redfish-insights
 
 # Check console plugin is registered
 oc get consoleplugins
@@ -874,7 +874,7 @@ oc get consoleplugins
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `namespace.name` | `openshift-redfish-insights` | Namespace for deployment |
+| `namespace.name` | `redfish-insights` | Namespace for deployment |
 | `backend.config.pollInterval` | `30m` | How often to scan iDRACs |
 | `backend.config.catalogRefresh` | `24h` | How often to fetch Dell catalog |
 | `backend.image.tag` | `latest` | Backend image tag |
@@ -971,12 +971,12 @@ cd console-plugin && npm run dev
 
 1. Check ConsolePlugin is registered: `oc get consoleplugins`
 2. Verify plugin is enabled: `oc get consoles.operator.openshift.io cluster -o yaml`
-3. Check plugin pod logs: `oc logs -n openshift-redfish-insights -l app.kubernetes.io/component=plugin`
+3. Check plugin pod logs: `oc logs -n redfish-insights -l app.kubernetes.io/component=plugin`
 
 ### No nodes discovered
 
 1. Verify BareMetalHost CRDs exist: `oc get baremetalhosts -A`
-2. Check backend logs: `oc logs -n openshift-redfish-insights -l app.kubernetes.io/component=backend`
+2. Check backend logs: `oc logs -n redfish-insights -l app.kubernetes.io/component=backend`
 3. Ensure backend has RBAC to read BareMetalHosts
 
 ### iDRAC connection failures

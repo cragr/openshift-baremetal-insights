@@ -11,7 +11,7 @@ Package the OpenShift Redfish Insights application for production deployment wit
 | Container Registry | quay.io/cragr/ | OpenShift ecosystem standard, free public images |
 | Architecture | AMD64 only | Covers 95%+ deployments, simpler builds |
 | Metrics Scope | Minimal (scan_total) | Start simple, add more later |
-| Default Namespace | openshift-redfish-insights | Dedicated namespace, clear ownership |
+| Default Namespace | redfish-insights | Dedicated namespace, clear ownership |
 | Documentation | Single README | Lean docs, everything in one place |
 
 ## Helm Chart Structure

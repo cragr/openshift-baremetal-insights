@@ -1,7 +1,7 @@
 # helm/openshift-redfish-insights/values.yaml
 namespace:
   create: true
-  name: openshift-redfish-insights
+  name: redfish-insights
 
 backend:
   image:

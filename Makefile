@@ -62,10 +62,10 @@ helm-package:
 
 helm-install:
 	helm upgrade --install redfish-insights helm/openshift-redfish-insights/ \
-		--namespace openshift-redfish-insights --create-namespace
+		--namespace redfish-insights --create-namespace
 
 helm-uninstall:
-	helm uninstall redfish-insights --namespace openshift-redfish-insights
+	helm uninstall redfish-insights --namespace redfish-insights
 
 # Combined targets
 all: build plugin-build

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redfish-insights-plugin
-  namespace: openshift-redfish-insights
+  namespace: redfish-insights
   labels:
     app: redfish-insights-plugin
 spec:

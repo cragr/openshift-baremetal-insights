@@ -1648,7 +1648,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redfish-insights-plugin
-  namespace: openshift-redfish-insights
+  namespace: redfish-insights
   labels:
     app: redfish-insights-plugin
 spec:
@@ -1692,7 +1692,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: redfish-insights-plugin
-  namespace: openshift-redfish-insights
+  namespace: redfish-insights
   labels:
     app: redfish-insights-plugin
   annotations:
@@ -1721,7 +1721,7 @@ spec:
     type: Service
     service:
       name: redfish-insights-plugin
-      namespace: openshift-redfish-insights
+      namespace: redfish-insights
       port: 9443
       basePath: "/"
   proxy:
@@ -1731,7 +1731,7 @@ spec:
         type: Service
         service:
           name: openshift-redfish-insights
-          namespace: openshift-redfish-insights
+          namespace: redfish-insights
           port: 8080
 ```
 

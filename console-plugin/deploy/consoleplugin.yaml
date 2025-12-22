@@ -8,7 +8,7 @@ spec:
     type: Service
     service:
       name: redfish-insights-plugin
-      namespace: openshift-redfish-insights
+      namespace: redfish-insights
       port: 9443
       basePath: "/"
   proxy:
@@ -18,5 +18,5 @@ spec:
         type: Service
         service:
           name: openshift-redfish-insights
-          namespace: openshift-redfish-insights
+          namespace: redfish-insights
           port: 8080
