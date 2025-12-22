@@ -76,25 +76,5 @@
         "$codeRef": "HealthEvents"
       }
     }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "exact": true,
-      "path": "/redfish-insights/firmware",
-      "component": {
-        "$codeRef": "FirmwarePage"
-      }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "exact": false,
-      "path": "/redfish-insights/firmware/:name",
-      "component": {
-        "$codeRef": "FirmwareNodeDetail"
-      }
-    }
   }
 ]

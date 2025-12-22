@@ -11,9 +11,7 @@
       "Overview": "./src/pages/Overview",
       "Nodes": "./src/pages/Nodes",
       "NodeDetail": "./src/pages/NodeDetail",
-      "HealthEvents": "./src/pages/HealthEvents",
-      "FirmwarePage": "./src/pages/FirmwarePage",
-      "FirmwareNodeDetail": "./src/pages/FirmwareNodeDetail"
+      "HealthEvents": "./src/pages/HealthEvents"
     },
     "dependencies": {
       "@console/pluginAPI": "*"
