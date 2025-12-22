@@ -1,0 +1,5 @@
+FROM alpine:3.19
+RUN apk --no-cache add ca-certificates
+COPY bin/openshift-redfish-insights-amd64 /openshift-redfish-insights
+
+ENTRYPOINT ["/openshift-redfish-insights"]

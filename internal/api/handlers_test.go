@@ -21,7 +21,7 @@ func TestListNodesHandler(t *testing.T) {
 		LastScanned: time.Now(),
 	})
 
-	srv := NewServer(s, ":8080")
+	srv := NewServer(s, ":8080", "", "")
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/nodes", nil)
 	w := httptest.NewRecorder()
@@ -54,7 +54,7 @@ func TestGetNodeHandler(t *testing.T) {
 		},
 	})
 
-	srv := NewServer(s, ":8080")
+	srv := NewServer(s, ":8080", "", "")
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/nodes/worker-0/firmware", nil)
 	w := httptest.NewRecorder()
@@ -68,7 +68,7 @@ func TestGetNodeHandler(t *testing.T) {
 
 func TestGetNodeHandler_NotFound(t *testing.T) {
 	s := store.New()
-	srv := NewServer(s, ":8080")
+	srv := NewServer(s, ":8080", "", "")
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/nodes/nonexistent/firmware", nil)
 	w := httptest.NewRecorder()
@@ -82,7 +82,7 @@ func TestGetNodeHandler_NotFound(t *testing.T) {
 
 func TestHealthHandler(t *testing.T) {
 	s := store.New()
-	srv := NewServer(s, ":8080")
+	srv := NewServer(s, ":8080", "", "")
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/health", nil)
 	w := httptest.NewRecorder()
@@ -139,7 +139,7 @@ func TestListUpdatesHandler(t *testing.T) {
 		},
 	})
 
-	srv := NewServer(s, ":8080")
+	srv := NewServer(s, ":8080", "", "")
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/updates", nil)
 	w := httptest.NewRecorder()

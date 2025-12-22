@@ -14,16 +14,17 @@ const (
 
 // Node represents a discovered bare metal server
 type Node struct {
-	Name            string             `json:"name"`
-	BMCAddress      string             `json:"bmcAddress"`
-	Model           string             `json:"model"`
-	Manufacturer    string             `json:"manufacturer"`
-	ServiceTag      string             `json:"serviceTag"`
-	LastScanned     time.Time          `json:"lastScanned"`
-	Status          NodeStatus         `json:"status"`
-	FirmwareCount   int                `json:"firmwareCount"`
-	UpdatesAvailable int               `json:"updatesAvailable"`
-	Firmware        []FirmwareComponent `json:"firmware,omitempty"`
+	Name             string              `json:"name"`
+	Namespace        string              `json:"namespace"`
+	BMCAddress       string              `json:"bmcAddress"`
+	Model            string              `json:"model"`
+	Manufacturer     string              `json:"manufacturer"`
+	ServiceTag       string              `json:"serviceTag"`
+	LastScanned      time.Time           `json:"lastScanned"`
+	Status           NodeStatus          `json:"status"`
+	FirmwareCount    int                 `json:"firmwareCount"`
+	UpdatesAvailable int                 `json:"updatesAvailable"`
+	Firmware         []FirmwareComponent `json:"firmware,omitempty"`
 }
 
 // FirmwareComponent represents a single firmware component on a server

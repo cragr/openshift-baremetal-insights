@@ -121,6 +121,7 @@ func (p *Poller) pollHost(ctx context.Context, host discovery.DiscoveredHost) {
 
 	node := models.Node{
 		Name:        host.Name,
+		Namespace:   host.Namespace,
 		BMCAddress:  host.BMCAddress,
 		LastScanned: time.Now(),
 	}

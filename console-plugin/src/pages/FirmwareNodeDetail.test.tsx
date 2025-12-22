@@ -7,6 +7,7 @@ jest.mock('../services/api');
 
 const mockNode = {
   name: 'worker-0',
+  namespace: 'openshift-machine-api',
   bmcAddress: '10.0.0.1',
   model: 'PowerEdge R640',
   manufacturer: 'Dell Inc.',
@@ -40,9 +41,9 @@ describe('FirmwareNodeDetail', () => {
 
   it('renders node name', async () => {
     render(
-      <MemoryRouter initialEntries={['/firmware/nodes/worker-0']}>
+      <MemoryRouter initialEntries={['/redfish-insights/firmware/nodes/worker-0']}>
         <Switch>
-          <Route path="/firmware/nodes/:name" component={FirmwareNodeDetail} />
+          <Route path="/redfish-insights/firmware/nodes/:name" component={FirmwareNodeDetail} />
         </Switch>
       </MemoryRouter>
     );
@@ -53,9 +54,9 @@ describe('FirmwareNodeDetail', () => {
 
   it('displays firmware component', async () => {
     render(
-      <MemoryRouter initialEntries={['/firmware/nodes/worker-0']}>
+      <MemoryRouter initialEntries={['/redfish-insights/firmware/nodes/worker-0']}>
         <Switch>
-          <Route path="/firmware/nodes/:name" component={FirmwareNodeDetail} />
+          <Route path="/redfish-insights/firmware/nodes/:name" component={FirmwareNodeDetail} />
         </Switch>
       </MemoryRouter>
     );
@@ -69,9 +70,9 @@ describe('FirmwareNodeDetail', () => {
   it('displays loading spinner initially', () => {
     (api.getNodes as jest.Mock).mockImplementation(() => new Promise(() => {}));
     render(
-      <MemoryRouter initialEntries={['/firmware/nodes/worker-0']}>
+      <MemoryRouter initialEntries={['/redfish-insights/firmware/nodes/worker-0']}>
         <Switch>
-          <Route path="/firmware/nodes/:name" component={FirmwareNodeDetail} />
+          <Route path="/redfish-insights/firmware/nodes/:name" component={FirmwareNodeDetail} />
         </Switch>
       </MemoryRouter>
     );
@@ -81,9 +82,9 @@ describe('FirmwareNodeDetail', () => {
   it('displays error message on API failure', async () => {
     (api.getNodes as jest.Mock).mockRejectedValue(new Error('Network error'));
     render(
-      <MemoryRouter initialEntries={['/firmware/nodes/worker-0']}>
+      <MemoryRouter initialEntries={['/redfish-insights/firmware/nodes/worker-0']}>
         <Switch>
-          <Route path="/firmware/nodes/:name" component={FirmwareNodeDetail} />
+          <Route path="/redfish-insights/firmware/nodes/:name" component={FirmwareNodeDetail} />
         </Switch>
       </MemoryRouter>
     );
@@ -95,9 +96,9 @@ describe('FirmwareNodeDetail', () => {
   it('displays node not found error', async () => {
     (api.getNodes as jest.Mock).mockResolvedValue([]);
     render(
-      <MemoryRouter initialEntries={['/firmware/nodes/nonexistent']}>
+      <MemoryRouter initialEntries={['/redfish-insights/firmware/nodes/nonexistent']}>
         <Switch>
-          <Route path="/firmware/nodes/:name" component={FirmwareNodeDetail} />
+          <Route path="/redfish-insights/firmware/nodes/:name" component={FirmwareNodeDetail} />
         </Switch>
       </MemoryRouter>
     );

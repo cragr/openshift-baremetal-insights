@@ -32,36 +32,62 @@ type DiscoveredHost struct {
 
 // Discoverer finds BareMetalHost resources and extracts BMC info
 type Discoverer struct {
-	dynamicClient dynamic.Interface
-	kubeClient    kubernetes.Interface
-	namespace     string
+	dynamicClient     dynamic.Interface
+	kubeClient        kubernetes.Interface
+	namespace         string
+	watchAllNamespaces bool
 }
 
 // NewDiscoverer creates a new BareMetalHost discoverer
-func NewDiscoverer(dynamicClient dynamic.Interface, kubeClient kubernetes.Interface, namespace string) *Discoverer {
+// If namespace is empty or watchAllNamespaces is true, it will search all namespaces
+func NewDiscoverer(dynamicClient dynamic.Interface, kubeClient kubernetes.Interface, namespace string, watchAllNamespaces bool) *Discoverer {
 	return &Discoverer{
-		dynamicClient: dynamicClient,
-		kubeClient:    kubeClient,
-		namespace:     namespace,
+		dynamicClient:     dynamicClient,
+		kubeClient:        kubeClient,
+		namespace:         namespace,
+		watchAllNamespaces: watchAllNamespaces,
 	}
 }
 
 // Discover finds all BareMetalHost resources and returns their BMC info
 func (d *Discoverer) Discover(ctx context.Context) ([]DiscoveredHost, error) {
-	list, err := d.dynamicClient.Resource(bmhGVR).Namespace(d.namespace).List(ctx, metav1.ListOptions{})
+	var list *unstructured.UnstructuredList
+	var err error
+
+	if d.watchAllNamespaces || d.namespace == "" {
+		// Search across all namespaces
+		log.Println("Discovering BareMetalHosts across all namespaces...")
+		list, err = d.dynamicClient.Resource(bmhGVR).List(ctx, metav1.ListOptions{})
+	} else {
+		// Search in specific namespace
+		log.Printf("Discovering BareMetalHosts in namespace %s...", d.namespace)
+		list, err = d.dynamicClient.Resource(bmhGVR).Namespace(d.namespace).List(ctx, metav1.ListOptions{})
+	}
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to list BareMetalHosts: %w", err)
 	}
 
+	log.Printf("Found %d BareMetalHost resources", len(list.Items))
+
 	var hosts []DiscoveredHost
+	namespaceCount := make(map[string]int)
 
 	for _, item := range list.Items {
 		host, err := d.extractHostInfo(ctx, &item)
 		if err != nil {
-			log.Printf("Warning: Failed to extract host info for %s: %v", item.GetName(), err)
+			log.Printf("Warning: Failed to extract host info for %s/%s: %v", item.GetNamespace(), item.GetName(), err)
 			continue
 		}
 		hosts = append(hosts, *host)
+		namespaceCount[item.GetNamespace()]++
+	}
+
+	// Log summary of discovered hosts by namespace
+	if d.watchAllNamespaces || d.namespace == "" {
+		for ns, count := range namespaceCount {
+			log.Printf("  Namespace %s: %d hosts", ns, count)
+		}
 	}
 
 	return hosts, nil

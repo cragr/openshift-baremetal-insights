@@ -11,6 +11,7 @@ export interface FirmwareComponent {
 
 export interface Node {
   name: string;
+  namespace: string;
   bmcAddress: string;
   model: string;
   manufacturer: string;

@@ -7,7 +7,7 @@ backend:
   image:
     repository: quay.io/cragr/openshift-redfish-insights
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   replicas: 1
   resources:
     requests:
@@ -28,7 +28,7 @@ plugin:
   image:
     repository: quay.io/cragr/redfish-insights-plugin
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   replicas: 1
   resources:
     requests:

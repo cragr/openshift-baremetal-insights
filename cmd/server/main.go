@@ -28,6 +28,7 @@ func main() {
 	// Get configuration from environment
 	addr := getEnv("LISTEN_ADDR", ":8080")
 	namespace := getEnv("WATCH_NAMESPACE", "openshift-machine-api")
+	watchAllNamespaces := getEnvBool("WATCH_ALL_NAMESPACES", true) // Default to true for ACM hub clusters
 	pollInterval := getEnvDuration("POLL_INTERVAL", 30*time.Minute)
 	catalogURL := getEnv("CATALOG_URL", "https://downloads.dell.com/catalog/Catalog.xml.gz")
 	catalogTTL := getEnvDuration("CATALOG_TTL", 24*time.Hour)
@@ -53,7 +54,7 @@ func main() {
 	// Create components
 	dataStore := store.New()
 	redfishClient := redfish.NewClient()
-	discoverer := discovery.NewDiscoverer(dynamicClient, kubeClient, namespace)
+	discoverer := discovery.NewDiscoverer(dynamicClient, kubeClient, namespace, watchAllNamespaces)
 	catalogSvc := catalog.NewService(catalogURL, catalogTTL)
 	poll := poller.New(discoverer, redfishClient, dataStore, catalogSvc, pollInterval)
 	server := api.NewServer(dataStore, addr, tlsCertFile, tlsKeyFile)
@@ -75,7 +76,11 @@ func main() {
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 	defer signal.Stop(sigCh)
 
-	log.Printf("Server ready - API: %s, Namespace: %s, Poll Interval: %v, Catalog TTL: %v", addr, namespace, pollInterval, catalogTTL)
+	if watchAllNamespaces {
+		log.Printf("Server ready - API: %s, Watch: all namespaces, Poll Interval: %v, Catalog TTL: %v", addr, pollInterval, catalogTTL)
+	} else {
+		log.Printf("Server ready - API: %s, Watch: namespace %s, Poll Interval: %v, Catalog TTL: %v", addr, namespace, pollInterval, catalogTTL)
+	}
 
 	select {
 	case err := <-serverErr:
@@ -122,6 +127,18 @@ func getEnvDuration(key string, defaultValue time.Duration) time.Duration {
 		d, err := time.ParseDuration(value)
 		if err == nil {
 			return d
+		}
+	}
+	return defaultValue
+}
+
+func getEnvBool(key string, defaultValue bool) bool {
+	if value := os.Getenv(key); value != "" {
+		switch value {
+		case "true", "1", "yes", "on":
+			return true
+		case "false", "0", "no", "off":
+			return false
 		}
 	}
 	return defaultValue

@@ -8,10 +8,8 @@
     "displayName": "Firmware Insights",
     "description": "View firmware inventory and update status for bare metal nodes",
     "exposedModules": {
-      "FirmwareOverview": "./src/pages/FirmwareOverview",
-      "FirmwareNodes": "./src/pages/FirmwareNodes",
-      "FirmwareNodeDetail": "./src/pages/FirmwareNodeDetail",
-      "FirmwareUpdates": "./src/pages/FirmwareUpdates"
+      "FirmwarePage": "./src/pages/FirmwarePage",
+      "FirmwareNodeDetail": "./src/pages/FirmwareNodeDetail"
     },
     "dependencies": {
       "@console/pluginAPI": "*"

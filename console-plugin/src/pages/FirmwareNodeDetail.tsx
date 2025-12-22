@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { useParams, useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import {
   Page,
   PageSection,
@@ -27,9 +27,16 @@ import { FirmwareStatusIcon } from '../components/FirmwareStatusIcon';
 const needsUpdate = (fw: FirmwareComponent): boolean =>
   Boolean(fw.availableVersion && fw.availableVersion !== fw.currentVersion);
 
+// Extract node name from URL path since useParams may not work in console plugin context
+const getNodeNameFromPath = (pathname: string): string | undefined => {
+  const match = pathname.match(/\/redfish-insights\/firmware\/nodes\/([^/]+)/);
+  return match ? decodeURIComponent(match[1]) : undefined;
+};
+
 export const FirmwareNodeDetail: React.FC = () => {
-  const { name } = useParams<{ name: string }>();
   const history = useHistory();
+  const location = useLocation();
+  const name = getNodeNameFromPath(location.pathname);
   const [node, setNode] = useState<Node | null>(null);
   const [firmware, setFirmware] = useState<FirmwareComponent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +44,11 @@ export const FirmwareNodeDetail: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!name) return;
+      if (!name) {
+        setError('No node name provided');
+        setLoading(false);
+        return;
+      }
       try {
         const [nodes, fw] = await Promise.all([
           getNodes(),
@@ -47,6 +58,7 @@ export const FirmwareNodeDetail: React.FC = () => {
         setNode(foundNode || null);
         setFirmware(fw);
       } catch (err) {
+        console.error('FirmwareNodeDetail fetch error:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch data');
       } finally {
         setLoading(false);
@@ -93,7 +105,7 @@ export const FirmwareNodeDetail: React.FC = () => {
     <Page>
       <PageSection>
         <Breadcrumb>
-          <BreadcrumbItem onClick={() => history.push('/firmware/nodes')}>
+          <BreadcrumbItem onClick={() => history.push('/redfish-insights/firmware/nodes')}>
             Firmware Nodes
           </BreadcrumbItem>
           <BreadcrumbItem isActive>{name}</BreadcrumbItem>

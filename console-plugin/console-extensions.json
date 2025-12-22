@@ -1,41 +1,29 @@
 [
   {
-    "type": "console.navigation/href",
+    "type": "console.navigation/section",
     "properties": {
-      "id": "firmware-overview",
+      "id": "redfish-insights",
       "perspective": "admin",
-      "section": "compute",
-      "name": "Firmware Overview",
-      "href": "/firmware"
+      "name": "Redfish Insights"
     }
   },
   {
     "type": "console.navigation/href",
     "properties": {
-      "id": "firmware-nodes",
+      "id": "redfish-firmware",
       "perspective": "admin",
-      "section": "compute",
-      "name": "Firmware Nodes",
-      "href": "/firmware/nodes"
-    }
-  },
-  {
-    "type": "console.navigation/href",
-    "properties": {
-      "id": "firmware-updates",
-      "perspective": "admin",
-      "section": "compute",
-      "name": "Firmware Updates",
-      "href": "/firmware/updates"
+      "section": "redfish-insights",
+      "name": "Firmware",
+      "href": "/redfish-insights/firmware"
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": true,
-      "path": "/firmware",
+      "path": "/redfish-insights/firmware",
       "component": {
-        "$codeRef": "FirmwareOverview"
+        "$codeRef": "FirmwarePage"
       }
     }
   },
@@ -43,9 +31,19 @@
     "type": "console.page/route",
     "properties": {
       "exact": true,
-      "path": "/firmware/nodes",
+      "path": "/redfish-insights/firmware/nodes",
       "component": {
-        "$codeRef": "FirmwareNodes"
+        "$codeRef": "FirmwarePage"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": true,
+      "path": "/redfish-insights/firmware/updates",
+      "component": {
+        "$codeRef": "FirmwarePage"
       }
     }
   },
@@ -53,19 +51,9 @@
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": "/firmware/nodes/:name",
+      "path": "/redfish-insights/firmware/nodes/:name",
       "component": {
         "$codeRef": "FirmwareNodeDetail"
-      }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "exact": true,
-      "path": "/firmware/updates",
-      "component": {
-        "$codeRef": "FirmwareUpdates"
       }
     }
   }

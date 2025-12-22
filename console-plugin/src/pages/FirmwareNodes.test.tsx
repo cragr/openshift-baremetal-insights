@@ -9,6 +9,7 @@ jest.mock('../services/api');
 const mockNodes: Node[] = [
   {
     name: 'worker-0',
+    namespace: 'openshift-machine-api',
     bmcAddress: '10.0.0.1',
     model: 'PowerEdge R640',
     manufacturer: 'Dell',
