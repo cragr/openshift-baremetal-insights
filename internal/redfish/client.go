@@ -290,3 +290,78 @@ func (c *Client) GetThermalData(ctx context.Context, bmcAddress, username, passw
 
 	return detail, summary, nil
 }
+
+// GetPowerData fetches power supply and consumption data from Redfish Chassis
+func (c *Client) GetPowerData(ctx context.Context, bmcAddress, username, password string) (*models.PowerDetail, *models.PowerSummary, error) {
+	config := gofish.ClientConfig{
+		Endpoint:   fmt.Sprintf("https://%s", bmcAddress),
+		Username:   username,
+		Password:   password,
+		Insecure:   true,
+		HTTPClient: c.httpClient,
+	}
+
+	client, err := gofish.Connect(config)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to connect to BMC: %w", err)
+	}
+	defer client.Logout()
+
+	service := client.GetService()
+	chassis, err := service.Chassis()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get chassis: %w", err)
+	}
+
+	if len(chassis) == 0 {
+		return nil, nil, fmt.Errorf("no chassis found")
+	}
+
+	power, err := chassis[0].Power()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get power: %w", err)
+	}
+
+	detail := &models.PowerDetail{
+		PSUs: make([]models.PSUReading, 0),
+	}
+
+	// Get current power consumption
+	if len(power.PowerControl) > 0 {
+		detail.CurrentWatts = int(power.PowerControl[0].PowerConsumedWatts)
+	}
+
+	psusHealthy := 0
+	for _, psu := range power.PowerSupplies {
+		status := parseHealthStatus(string(psu.Status.Health))
+		reading := models.PSUReading{
+			Name:      psu.Name,
+			Status:    status,
+			CapacityW: int(psu.PowerCapacityWatts),
+		}
+		detail.PSUs = append(detail.PSUs, reading)
+		if status == models.HealthOK {
+			psusHealthy++
+		}
+	}
+
+	redundancy := "Full"
+	if psusHealthy < len(power.PowerSupplies) {
+		redundancy = "Lost"
+	}
+	detail.Redundancy = redundancy
+
+	summary := &models.PowerSummary{
+		CurrentWatts: detail.CurrentWatts,
+		PSUCount:     len(power.PowerSupplies),
+		PSUsHealthy:  psusHealthy,
+		Redundancy:   redundancy,
+		Status:       models.HealthOK,
+	}
+
+	if psusHealthy < len(power.PowerSupplies) {
+		summary.Status = models.HealthCritical
+	}
+
+	return detail, summary, nil
+}
