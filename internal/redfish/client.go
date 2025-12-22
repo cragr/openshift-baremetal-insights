@@ -208,3 +208,85 @@ func (c *Client) GetSystemHealth(ctx context.Context, bmcAddress, username, pass
 
 	return rollup, overallHealth, nil
 }
+
+// GetThermalData fetches temperature and fan data from Redfish Chassis
+func (c *Client) GetThermalData(ctx context.Context, bmcAddress, username, password string) (*models.ThermalDetail, *models.ThermalSummary, error) {
+	config := gofish.ClientConfig{
+		Endpoint:   fmt.Sprintf("https://%s", bmcAddress),
+		Username:   username,
+		Password:   password,
+		Insecure:   true,
+		HTTPClient: c.httpClient,
+	}
+
+	client, err := gofish.Connect(config)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to connect to BMC: %w", err)
+	}
+	defer client.Logout()
+
+	service := client.GetService()
+	chassis, err := service.Chassis()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get chassis: %w", err)
+	}
+
+	if len(chassis) == 0 {
+		return nil, nil, fmt.Errorf("no chassis found")
+	}
+
+	thermal, err := chassis[0].Thermal()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to get thermal: %w", err)
+	}
+
+	detail := &models.ThermalDetail{
+		Temperatures: make([]models.ThermalReading, 0),
+		Fans:         make([]models.FanReading, 0),
+	}
+
+	var maxTemp, inletTemp int
+	for _, t := range thermal.Temperatures {
+		reading := models.ThermalReading{
+			Name:   t.Name,
+			TempC:  int(t.ReadingCelsius),
+			Status: parseHealthStatus(string(t.Status.Health)),
+		}
+		detail.Temperatures = append(detail.Temperatures, reading)
+
+		if int(t.ReadingCelsius) > maxTemp {
+			maxTemp = int(t.ReadingCelsius)
+		}
+		if contains(t.Name, "Inlet", "Ambient") {
+			inletTemp = int(t.ReadingCelsius)
+		}
+	}
+
+	fansHealthy := 0
+	for _, f := range thermal.Fans {
+		status := parseHealthStatus(string(f.Status.Health))
+		reading := models.FanReading{
+			Name:   f.Name,
+			RPM:    int(f.Reading),
+			Status: status,
+		}
+		detail.Fans = append(detail.Fans, reading)
+		if status == models.HealthOK {
+			fansHealthy++
+		}
+	}
+
+	summary := &models.ThermalSummary{
+		InletTempC:  inletTemp,
+		MaxTempC:    maxTemp,
+		FanCount:    len(thermal.Fans),
+		FansHealthy: fansHealthy,
+		Status:      models.HealthOK,
+	}
+
+	if fansHealthy < len(thermal.Fans) {
+		summary.Status = models.HealthWarning
+	}
+
+	return detail, summary, nil
+}
