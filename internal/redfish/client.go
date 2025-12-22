@@ -365,3 +365,78 @@ func (c *Client) GetPowerData(ctx context.Context, bmcAddress, username, passwor
 
 	return detail, summary, nil
 }
+
+// GetEvents fetches System Event Log entries from Redfish Manager
+func (c *Client) GetEvents(ctx context.Context, bmcAddress, username, password string, limit int) ([]models.HealthEvent, error) {
+	config := gofish.ClientConfig{
+		Endpoint:   fmt.Sprintf("https://%s", bmcAddress),
+		Username:   username,
+		Password:   password,
+		Insecure:   true,
+		HTTPClient: c.httpClient,
+	}
+
+	client, err := gofish.Connect(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to BMC: %w", err)
+	}
+	defer client.Logout()
+
+	service := client.GetService()
+	managers, err := service.Managers()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get managers: %w", err)
+	}
+
+	if len(managers) == 0 {
+		return nil, fmt.Errorf("no managers found")
+	}
+
+	logServices, err := managers[0].LogServices()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get log services: %w", err)
+	}
+
+	events := make([]models.HealthEvent, 0)
+
+	for _, ls := range logServices {
+		if ls.ID != "Sel" && ls.ID != "SEL" {
+			continue
+		}
+
+		entries, err := ls.Entries()
+		if err != nil {
+			continue
+		}
+
+		for i, entry := range entries {
+			if limit > 0 && i >= limit {
+				break
+			}
+
+			severity := models.HealthOK
+			switch entry.Severity {
+			case "Critical":
+				severity = models.HealthCritical
+			case "Warning":
+				severity = models.HealthWarning
+			}
+
+			// Parse timestamp from ISO8601 string
+			timestamp, err := time.Parse(time.RFC3339, entry.Created)
+			if err != nil {
+				// If parsing fails, use current time
+				timestamp = time.Now()
+			}
+
+			events = append(events, models.HealthEvent{
+				ID:        entry.ID,
+				Timestamp: timestamp,
+				Severity:  severity,
+				Message:   entry.Message,
+			})
+		}
+	}
+
+	return events, nil
+}
