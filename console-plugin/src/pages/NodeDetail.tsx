@@ -1,6 +1,6 @@
 import * as React from 'react';
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useEffect, useState, useMemo } from 'react';
+import { useLocation, Link } from 'react-router-dom';
 import {
   Page,
   PageSection,
@@ -29,7 +29,12 @@ import { FirmwareTab } from './tabs/FirmwareTab';
 import { EventsTab } from './tabs/EventsTab';
 
 export const NodeDetail: React.FC = () => {
-  const { name } = useParams<{ name: string }>();
+  const location = useLocation();
+  // Extract node name from URL path: /redfish-insights/nodes/:name
+  const name = useMemo(() => {
+    const match = location.pathname.match(/\/redfish-insights\/nodes\/([^/]+)/);
+    return match ? decodeURIComponent(match[1]) : undefined;
+  }, [location.pathname]);
   const [node, setNode] = useState<Node | null>(null);
   const [firmware, setFirmware] = useState<FirmwareComponent[]>([]);
   const [events, setEvents] = useState<HealthEvent[]>([]);
