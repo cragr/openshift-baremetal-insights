@@ -7,16 +7,10 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM nginxinc/nginx-unprivileged:alpine
+FROM registry.access.redhat.com/ubi9/nginx-122:latest
 
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx-main.conf /etc/nginx/nginx.conf
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-USER 0
-RUN chmod -R g+rwx /var/cache/nginx /var/run /var/log/nginx /etc/nginx && \
-    chown -R 1001:0 /var/cache/nginx /var/run /var/log/nginx /usr/share/nginx/html /etc/nginx
-USER 1001
+COPY --from=builder /app/dist /opt/app-root/src
+COPY nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 9443
 
