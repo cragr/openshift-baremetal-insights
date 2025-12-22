@@ -154,3 +154,57 @@ func contains(s string, substrs ...string) bool {
 	}
 	return false
 }
+
+func parseHealthStatus(s string) models.HealthStatus {
+	switch s {
+	case "OK":
+		return models.HealthOK
+	case "Warning":
+		return models.HealthWarning
+	case "Critical":
+		return models.HealthCritical
+	default:
+		return models.HealthUnknown
+	}
+}
+
+// GetSystemHealth fetches health rollup from Redfish Systems endpoint
+func (c *Client) GetSystemHealth(ctx context.Context, bmcAddress, username, password string) (*models.HealthRollup, models.HealthStatus, error) {
+	config := gofish.ClientConfig{
+		Endpoint:   fmt.Sprintf("https://%s", bmcAddress),
+		Username:   username,
+		Password:   password,
+		Insecure:   true,
+		HTTPClient: c.httpClient,
+	}
+
+	client, err := gofish.Connect(config)
+	if err != nil {
+		return nil, models.HealthUnknown, fmt.Errorf("failed to connect to BMC: %w", err)
+	}
+	defer client.Logout()
+
+	service := client.GetService()
+	systems, err := service.Systems()
+	if err != nil {
+		return nil, models.HealthUnknown, fmt.Errorf("failed to get systems: %w", err)
+	}
+
+	if len(systems) == 0 {
+		return nil, models.HealthUnknown, fmt.Errorf("no systems found")
+	}
+
+	sys := systems[0]
+	overallHealth := parseHealthStatus(string(sys.Status.Health))
+
+	rollup := &models.HealthRollup{
+		Processors:    models.HealthUnknown,
+		Memory:        models.HealthUnknown,
+		PowerSupplies: models.HealthUnknown,
+		Fans:          models.HealthUnknown,
+		Storage:       models.HealthUnknown,
+		Network:       models.HealthUnknown,
+	}
+
+	return rollup, overallHealth, nil
+}
