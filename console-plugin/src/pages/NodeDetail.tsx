@@ -39,7 +39,11 @@ export const NodeDetail: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!name) return;
+      if (!name) {
+        setError('No node name provided');
+        setLoading(false);
+        return;
+      }
       try {
         const [nodesData, firmwareData, eventsData] = await Promise.all([
           getNodes(),
@@ -55,6 +59,7 @@ export const NodeDetail: React.FC = () => {
           setEvents(eventsData);
         }
       } catch (err) {
+        console.error('NodeDetail fetch error:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch node data');
       } finally {
         setLoading(false);
