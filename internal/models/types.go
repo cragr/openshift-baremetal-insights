@@ -25,6 +25,11 @@ type Node struct {
 	FirmwareCount    int                 `json:"firmwareCount"`
 	UpdatesAvailable int                 `json:"updatesAvailable"`
 	Firmware         []FirmwareComponent `json:"firmware,omitempty"`
+	// Health fields
+	Health           HealthStatus        `json:"health,omitempty"`
+	HealthRollup     *HealthRollup       `json:"healthRollup,omitempty"`
+	ThermalSummary   *ThermalSummary     `json:"thermalSummary,omitempty"`
+	PowerSummary     *PowerSummary       `json:"powerSummary,omitempty"`
 }
 
 // FirmwareComponent represents a single firmware component on a server
@@ -64,4 +69,97 @@ type CatalogEntry struct {
 // CatalogKey creates a lookup key for catalog entries
 func CatalogKey(systemModel, componentID string) string {
 	return systemModel + "|" + componentID
+}
+
+// HealthStatus represents component health state
+type HealthStatus string
+
+const (
+	HealthOK       HealthStatus = "OK"
+	HealthWarning  HealthStatus = "Warning"
+	HealthCritical HealthStatus = "Critical"
+	HealthUnknown  HealthStatus = "Unknown"
+)
+
+// ComponentHealth represents health of a single component type
+type ComponentHealth struct {
+	Name    string       `json:"name"`
+	Status  HealthStatus `json:"status"`
+	Details string       `json:"details,omitempty"`
+}
+
+// IsHealthy returns true if status is OK
+func (c *ComponentHealth) IsHealthy() bool {
+	return c.Status == HealthOK
+}
+
+// HealthRollup aggregates health across component types
+type HealthRollup struct {
+	Processors    HealthStatus `json:"processors"`
+	Memory        HealthStatus `json:"memory"`
+	PowerSupplies HealthStatus `json:"powerSupplies"`
+	Fans          HealthStatus `json:"fans"`
+	Storage       HealthStatus `json:"storage"`
+	Network       HealthStatus `json:"network"`
+}
+
+// ThermalSummary holds temperature and fan data
+type ThermalSummary struct {
+	InletTempC  int          `json:"inletTempC"`
+	MaxTempC    int          `json:"maxTempC"`
+	FanCount    int          `json:"fanCount"`
+	FansHealthy int          `json:"fansHealthy"`
+	Status      HealthStatus `json:"status"`
+}
+
+// PowerSummary holds power consumption and PSU data
+type PowerSummary struct {
+	CurrentWatts int          `json:"currentWatts"`
+	PSUCount     int          `json:"psuCount"`
+	PSUsHealthy  int          `json:"psusHealthy"`
+	Redundancy   string       `json:"redundancy"`
+	Status       HealthStatus `json:"status"`
+}
+
+// ThermalReading represents a single temperature sensor
+type ThermalReading struct {
+	Name   string       `json:"name"`
+	TempC  int          `json:"tempC"`
+	Status HealthStatus `json:"status"`
+}
+
+// FanReading represents a single fan
+type FanReading struct {
+	Name   string       `json:"name"`
+	RPM    int          `json:"rpm"`
+	Status HealthStatus `json:"status"`
+}
+
+// ThermalDetail provides full thermal information for a node
+type ThermalDetail struct {
+	Temperatures []ThermalReading `json:"temperatures"`
+	Fans         []FanReading     `json:"fans"`
+}
+
+// PSUReading represents a single power supply unit
+type PSUReading struct {
+	Name      string       `json:"name"`
+	Status    HealthStatus `json:"status"`
+	CapacityW int          `json:"capacityW"`
+}
+
+// PowerDetail provides full power information for a node
+type PowerDetail struct {
+	CurrentWatts int          `json:"currentWatts"`
+	PSUs         []PSUReading `json:"psus"`
+	Redundancy   string       `json:"redundancy"`
+}
+
+// HealthEvent represents a system event log entry
+type HealthEvent struct {
+	ID        string       `json:"id"`
+	Timestamp time.Time    `json:"timestamp"`
+	Severity  HealthStatus `json:"severity"`
+	Message   string       `json:"message"`
+	NodeName  string       `json:"nodeName,omitempty"`
 }

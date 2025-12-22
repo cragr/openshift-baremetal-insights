@@ -53,11 +53,12 @@ func main() {
 
 	// Create components
 	dataStore := store.New()
+	eventStore := store.NewEventStore(1000)
 	redfishClient := redfish.NewClient()
 	discoverer := discovery.NewDiscoverer(dynamicClient, kubeClient, namespace, watchAllNamespaces)
 	catalogSvc := catalog.NewService(catalogURL, catalogTTL)
-	poll := poller.New(discoverer, redfishClient, dataStore, catalogSvc, pollInterval)
-	server := api.NewServer(dataStore, addr, tlsCertFile, tlsKeyFile)
+	poll := poller.New(discoverer, redfishClient, dataStore, eventStore, catalogSvc, pollInterval)
+	server := api.NewServerWithEvents(dataStore, eventStore, addr, tlsCertFile, tlsKeyFile)
 
 	// Start poller in background
 	ctx, cancel := context.WithCancel(context.Background())

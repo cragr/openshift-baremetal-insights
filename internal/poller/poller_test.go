@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewPoller(t *testing.T) {
-	p := New(nil, nil, nil, nil, 30*time.Minute)
+	p := New(nil, nil, nil, nil, nil, 30*time.Minute)
 	if p == nil {
 		t.Fatal("expected non-nil poller")
 	}
@@ -17,7 +17,7 @@ func TestNewPoller(t *testing.T) {
 }
 
 func TestNewPollerWithCatalog(t *testing.T) {
-	p := New(nil, nil, nil, nil, 30*time.Minute)
+	p := New(nil, nil, nil, nil, nil, 30*time.Minute)
 	if p == nil {
 		t.Fatal("expected non-nil poller")
 	}

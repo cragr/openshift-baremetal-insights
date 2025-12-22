@@ -10,20 +10,40 @@
   {
     "type": "console.navigation/href",
     "properties": {
-      "id": "redfish-firmware",
+      "id": "redfish-overview",
       "perspective": "admin",
       "section": "redfish-insights",
-      "name": "Firmware",
-      "href": "/redfish-insights/firmware"
+      "name": "Overview",
+      "href": "/redfish-insights"
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "redfish-nodes",
+      "perspective": "admin",
+      "section": "redfish-insights",
+      "name": "Nodes",
+      "href": "/redfish-insights/nodes"
+    }
+  },
+  {
+    "type": "console.navigation/href",
+    "properties": {
+      "id": "redfish-events",
+      "perspective": "admin",
+      "section": "redfish-insights",
+      "name": "Health Events",
+      "href": "/redfish-insights/events"
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": true,
-      "path": "/redfish-insights/firmware",
+      "path": "/redfish-insights",
       "component": {
-        "$codeRef": "FirmwarePage"
+        "$codeRef": "Overview"
       }
     }
   },
@@ -31,19 +51,9 @@
     "type": "console.page/route",
     "properties": {
       "exact": true,
-      "path": "/redfish-insights/firmware/nodes",
+      "path": "/redfish-insights/nodes",
       "component": {
-        "$codeRef": "FirmwarePage"
-      }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "exact": true,
-      "path": "/redfish-insights/firmware/updates",
-      "component": {
-        "$codeRef": "FirmwarePage"
+        "$codeRef": "Nodes"
       }
     }
   },
@@ -51,9 +61,19 @@
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": "/redfish-insights/firmware/nodes/:name",
+      "path": "/redfish-insights/nodes/:name",
       "component": {
-        "$codeRef": "FirmwareNodeDetail"
+        "$codeRef": "NodeDetail"
+      }
+    }
+  },
+  {
+    "type": "console.page/route",
+    "properties": {
+      "exact": true,
+      "path": "/redfish-insights/events",
+      "component": {
+        "$codeRef": "HealthEvents"
       }
     }
   }

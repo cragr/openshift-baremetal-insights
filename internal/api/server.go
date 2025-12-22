@@ -16,21 +16,28 @@ import (
 
 // Server is the REST API server
 type Server struct {
-	store    *store.Store
-	router   *chi.Mux
-	addr     string
-	server   *http.Server
-	certFile string
-	keyFile  string
+	store      *store.Store
+	eventStore *store.EventStore
+	router     *chi.Mux
+	addr       string
+	server     *http.Server
+	certFile   string
+	keyFile    string
 }
 
-// NewServer creates a new API server
+// NewServer creates a new API server (backwards compatible)
 func NewServer(s *store.Store, addr, certFile, keyFile string) *Server {
+	return NewServerWithEvents(s, nil, addr, certFile, keyFile)
+}
+
+// NewServerWithEvents creates a new API server with event store
+func NewServerWithEvents(s *store.Store, es *store.EventStore, addr, certFile, keyFile string) *Server {
 	srv := &Server{
-		store:    s,
-		addr:     addr,
-		certFile: certFile,
-		keyFile:  keyFile,
+		store:      s,
+		eventStore: es,
+		addr:       addr,
+		certFile:   certFile,
+		keyFile:    keyFile,
 	}
 
 	r := chi.NewRouter()
@@ -48,7 +55,12 @@ func NewServer(s *store.Store, addr, certFile, keyFile string) *Server {
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Get("/nodes", srv.listNodes)
 		r.Get("/nodes/{name}/firmware", srv.getNodeFirmware)
+		r.Get("/nodes/{name}/health", srv.getNodeHealth)
+		r.Get("/nodes/{name}/thermal", srv.getNodeThermal)
+		r.Get("/nodes/{name}/power", srv.getNodePower)
+		r.Get("/nodes/{name}/events", srv.getNodeEvents)
 		r.Get("/updates", srv.listUpdates)
+		r.Get("/events", srv.listEvents)
 		r.Get("/health", srv.health)
 	})
 

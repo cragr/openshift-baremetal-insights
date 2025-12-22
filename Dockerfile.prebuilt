@@ -1,5 +1,7 @@
-FROM alpine:3.19
-RUN apk --no-cache add ca-certificates
+FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
+RUN microdnf install -y ca-certificates && microdnf clean all
 COPY bin/openshift-redfish-insights-amd64 /openshift-redfish-insights
+
+USER 1001
 
 ENTRYPOINT ["/openshift-redfish-insights"]
