@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -104,4 +105,109 @@ func (s *Server) listUpdates(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+}
+
+func (s *Server) getNodeHealth(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+
+	node, ok := s.store.GetNode(name)
+	if !ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"error": "node not found"})
+		return
+	}
+
+	response := map[string]interface{}{
+		"health":       node.Health,
+		"healthRollup": node.HealthRollup,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func (s *Server) getNodeThermal(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+
+	node, ok := s.store.GetNode(name)
+	if !ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"error": "node not found"})
+		return
+	}
+
+	response := map[string]interface{}{
+		"thermal": node.ThermalSummary,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func (s *Server) getNodePower(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+
+	node, ok := s.store.GetNode(name)
+	if !ok {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"error": "node not found"})
+		return
+	}
+
+	response := map[string]interface{}{
+		"power": node.PowerSummary,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func (s *Server) getNodeEvents(w http.ResponseWriter, r *http.Request) {
+	name := chi.URLParam(r, "name")
+
+	if s.eventStore == nil {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{"events": []interface{}{}})
+		return
+	}
+
+	events := s.eventStore.ListEvents(50, name)
+
+	response := map[string]interface{}{
+		"events": events,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func (s *Server) listEvents(w http.ResponseWriter, r *http.Request) {
+	if s.eventStore == nil {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{"events": []interface{}{}})
+		return
+	}
+
+	// Parse query params
+	limitStr := r.URL.Query().Get("limit")
+	limit := 100
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
+
+	nodeName := r.URL.Query().Get("node")
+
+	events := s.eventStore.ListEvents(limit, nodeName)
+
+	response := map[string]interface{}{
+		"events": events,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }

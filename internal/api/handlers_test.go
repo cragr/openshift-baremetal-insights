@@ -165,3 +165,78 @@ func TestListUpdatesHandler(t *testing.T) {
 		t.Error("expected at least one update")
 	}
 }
+
+func TestGetNodeHealthHandler(t *testing.T) {
+	s := store.New()
+	s.SetNode(models.Node{
+		Name:   "worker-0",
+		Health: models.HealthOK,
+		HealthRollup: &models.HealthRollup{
+			Processors:    models.HealthOK,
+			Memory:        models.HealthOK,
+			PowerSupplies: models.HealthOK,
+			Fans:          models.HealthOK,
+			Storage:       models.HealthOK,
+			Network:       models.HealthOK,
+		},
+	})
+
+	es := store.NewEventStore(100)
+	srv := NewServerWithEvents(s, es, ":8080", "", "")
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/nodes/worker-0/health", nil)
+	w := httptest.NewRecorder()
+
+	srv.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status 200, got %d", w.Code)
+	}
+
+	var response struct {
+		Health       string `json:"health"`
+		HealthRollup struct {
+			Processors string `json:"processors"`
+		} `json:"healthRollup"`
+	}
+	if err := json.NewDecoder(w.Body).Decode(&response); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	if response.Health != "OK" {
+		t.Errorf("expected health OK, got %s", response.Health)
+	}
+}
+
+func TestListEventsHandler(t *testing.T) {
+	s := store.New()
+	es := store.NewEventStore(100)
+	es.AddEvent(models.HealthEvent{
+		ID:       "1",
+		Severity: models.HealthCritical,
+		Message:  "Test event",
+		NodeName: "worker-0",
+	})
+
+	srv := NewServerWithEvents(s, es, ":8080", "", "")
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/events", nil)
+	w := httptest.NewRecorder()
+
+	srv.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected status 200, got %d", w.Code)
+	}
+
+	var response struct {
+		Events []models.HealthEvent `json:"events"`
+	}
+	if err := json.NewDecoder(w.Body).Decode(&response); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	if len(response.Events) != 1 {
+		t.Errorf("expected 1 event, got %d", len(response.Events))
+	}
+}
