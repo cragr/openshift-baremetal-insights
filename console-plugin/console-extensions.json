@@ -2,46 +2,46 @@
   {
     "type": "console.navigation/section",
     "properties": {
-      "id": "redfish-insights",
+      "id": "baremetal-insights",
       "perspective": "admin",
-      "name": "Redfish Insights"
+      "name": "BareMetal Insights"
     }
   },
   {
     "type": "console.navigation/href",
     "properties": {
-      "id": "redfish-overview",
+      "id": "baremetal-overview",
       "perspective": "admin",
-      "section": "redfish-insights",
+      "section": "baremetal-insights",
       "name": "Overview",
-      "href": "/redfish-insights"
+      "href": "/baremetal-insights"
     }
   },
   {
     "type": "console.navigation/href",
     "properties": {
-      "id": "redfish-nodes",
+      "id": "baremetal-nodes",
       "perspective": "admin",
-      "section": "redfish-insights",
+      "section": "baremetal-insights",
       "name": "Nodes",
-      "href": "/redfish-insights/nodes"
+      "href": "/baremetal-insights/nodes"
     }
   },
   {
     "type": "console.navigation/href",
     "properties": {
-      "id": "redfish-events",
+      "id": "baremetal-events",
       "perspective": "admin",
-      "section": "redfish-insights",
+      "section": "baremetal-insights",
       "name": "Health Events",
-      "href": "/redfish-insights/events"
+      "href": "/baremetal-insights/events"
     }
   },
   {
     "type": "console.page/route",
     "properties": {
       "exact": true,
-      "path": "/redfish-insights",
+      "path": "/baremetal-insights",
       "component": {
         "$codeRef": "Overview"
       }
@@ -51,7 +51,7 @@
     "type": "console.page/route",
     "properties": {
       "exact": true,
-      "path": "/redfish-insights/nodes",
+      "path": "/baremetal-insights/nodes",
       "component": {
         "$codeRef": "Nodes"
       }
@@ -61,7 +61,7 @@
     "type": "console.page/route",
     "properties": {
       "exact": false,
-      "path": "/redfish-insights/nodes/:name",
+      "path": "/baremetal-insights/nodes/:name",
       "component": {
         "$codeRef": "NodeDetail"
       }
@@ -71,7 +71,7 @@
     "type": "console.page/route",
     "properties": {
       "exact": true,
-      "path": "/redfish-insights/events",
+      "path": "/baremetal-insights/events",
       "component": {
         "$codeRef": "HealthEvents"
       }
