@@ -181,6 +181,35 @@ func normalizeLinkStatus(status string) string {
 	}
 }
 
+// formatCapacity converts bytes to human-readable format
+func formatCapacity(bytes int64) string {
+	const (
+		TB = 1000 * 1000 * 1000 * 1000
+		GB = 1000 * 1000 * 1000
+	)
+	if bytes >= TB {
+		return fmt.Sprintf("%.1f TB", float64(bytes)/float64(TB))
+	}
+	if bytes >= GB {
+		return fmt.Sprintf("%d GB", bytes/GB)
+	}
+	return fmt.Sprintf("%d bytes", bytes)
+}
+
+// normalizeDriveState converts Redfish State to simplified status
+func normalizeDriveState(state string) string {
+	switch state {
+	case "Enabled":
+		return "Online"
+	case "Disabled", "StandbyOffline":
+		return "Offline"
+	case "Absent":
+		return "Absent"
+	default:
+		return state
+	}
+}
+
 func parseHealthStatus(h common.Health) models.HealthStatus {
 	switch h {
 	case common.OKHealth:
@@ -780,4 +809,82 @@ func (c *Client) GetNetworkAdapters(ctx context.Context, bmcAddress, username, p
 	}
 
 	return adapters, nil
+}
+
+// GetStorageDetails fetches controller and disk information from Redfish
+func (c *Client) GetStorageDetails(ctx context.Context, bmcAddress, username, password string) (*models.StorageDetail, error) {
+	config := gofish.ClientConfig{
+		Endpoint:   fmt.Sprintf("https://%s", bmcAddress),
+		Username:   username,
+		Password:   password,
+		Insecure:   true,
+		HTTPClient: c.httpClient,
+	}
+
+	client, err := gofish.Connect(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to BMC: %w", err)
+	}
+	defer client.Logout()
+
+	service := client.GetService()
+	systems, err := service.Systems()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get systems: %w", err)
+	}
+
+	if len(systems) == 0 {
+		return nil, fmt.Errorf("no systems found")
+	}
+
+	detail := &models.StorageDetail{
+		Controllers: make([]models.StorageController, 0),
+		Disks:       make([]models.Disk, 0),
+	}
+
+	// Get Storage subsystems
+	storageCollection, err := systems[0].Storage()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get storage: %w", err)
+	}
+
+	for _, storage := range storageCollection {
+		// Get controller info from StorageControllers
+		for _, sc := range storage.StorageControllers {
+			controller := models.StorageController{
+				Name:              storage.Name,
+				DeviceDescription: sc.Model,
+				FirmwareVersion:   sc.FirmwareVersion,
+				PCIeSlot:          "", // Will try to get from Location
+			}
+			if sc.Location.PartLocation.ServiceLabel != "" {
+				controller.PCIeSlot = sc.Location.PartLocation.ServiceLabel
+			}
+			detail.Controllers = append(detail.Controllers, controller)
+		}
+
+		// Get drives
+		drives, err := storage.Drives()
+		if err != nil {
+			log.Printf("Failed to get drives for %s: %v", storage.Name, err)
+			continue
+		}
+
+		for _, drive := range drives {
+			disk := models.Disk{
+				Name:        drive.Name,
+				State:       normalizeDriveState(string(drive.Status.State)),
+				SlotNumber:  "",
+				Size:        formatCapacity(drive.CapacityBytes),
+				BusProtocol: string(drive.Protocol),
+				MediaType:   string(drive.MediaType),
+			}
+			if drive.PhysicalLocation.PartLocation.ServiceLabel != "" {
+				disk.SlotNumber = drive.PhysicalLocation.PartLocation.ServiceLabel
+			}
+			detail.Disks = append(detail.Disks, disk)
+		}
+	}
+
+	return detail, nil
 }
