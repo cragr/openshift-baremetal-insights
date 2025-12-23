@@ -85,3 +85,19 @@ func TestComponentHealth_IsHealthy(t *testing.T) {
 		t.Error("expected unhealthy component to return false")
 	}
 }
+
+func TestPowerState_String(t *testing.T) {
+	tests := []struct {
+		state PowerState
+		want  string
+	}{
+		{PowerOn, "On"},
+		{PowerOff, "Off"},
+		{PowerUnknown, "Unknown"},
+	}
+	for _, tt := range tests {
+		if got := string(tt.state); got != tt.want {
+			t.Errorf("PowerState = %v, want %v", got, tt.want)
+		}
+	}
+}

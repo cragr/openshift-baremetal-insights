@@ -12,6 +12,15 @@ const (
 	StatusAuthFailed  NodeStatus = "auth-failed"
 )
 
+// PowerState represents the power state of a node
+type PowerState string
+
+const (
+	PowerOn      PowerState = "On"
+	PowerOff     PowerState = "Off"
+	PowerUnknown PowerState = "Unknown"
+)
+
 // Node represents a discovered bare metal server
 type Node struct {
 	Name             string              `json:"name"`
@@ -20,6 +29,7 @@ type Node struct {
 	Model            string              `json:"model"`
 	Manufacturer     string              `json:"manufacturer"`
 	ServiceTag       string              `json:"serviceTag"`
+	PowerState       PowerState          `json:"powerState"`
 	LastScanned      time.Time           `json:"lastScanned"`
 	Status           NodeStatus          `json:"status"`
 	FirmwareCount    int                 `json:"firmwareCount"`
