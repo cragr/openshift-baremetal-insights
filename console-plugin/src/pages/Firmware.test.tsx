@@ -2,13 +2,14 @@ import * as React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Firmware } from './Firmware';
-import { getFirmware, getNamespaces } from '../services/api';
+import { getFirmware, getNodes, getNamespaces, scheduleUpdates } from '../services/api';
 
 jest.mock('../services/api');
 
 describe('Firmware', () => {
   beforeEach(() => {
     (getNamespaces as jest.Mock).mockResolvedValue(['ns-a', 'ns-b']);
+    (scheduleUpdates as jest.Mock).mockResolvedValue({ success: true });
     (getFirmware as jest.Mock).mockResolvedValue({
       summary: {
         total: 10,
@@ -57,6 +58,26 @@ describe('Firmware', () => {
         },
       ],
     });
+    (getNodes as jest.Mock).mockResolvedValue([
+      {
+        name: 'node1',
+        namespace: 'ns-a',
+        model: 'PowerEdge R640',
+        manufacturer: 'Dell',
+        serialNumber: 'SN001',
+        status: 'Ready',
+        updatesAvailable: 2,
+      },
+      {
+        name: 'node2',
+        namespace: 'ns-b',
+        model: 'ProLiant DL360',
+        manufacturer: 'HPE',
+        serialNumber: 'SN002',
+        status: 'Ready',
+        updatesAvailable: 1,
+      },
+    ]);
   });
 
   it('renders firmware page title', async () => {
@@ -83,17 +104,20 @@ describe('Firmware', () => {
     });
   });
 
-  it('renders firmware entries in table', async () => {
+  it('renders servers tab with nodes', async () => {
     render(
       <MemoryRouter>
         <Firmware />
       </MemoryRouter>
     );
     await waitFor(() => {
-      expect(screen.getAllByText('node1').length).toBeGreaterThan(0);
-      expect(screen.getByText('node2')).toBeInTheDocument();
-      expect(screen.getAllByText('BIOS').length).toBeGreaterThan(0);
-      expect(screen.getByText('NIC Firmware')).toBeInTheDocument();
+      expect(screen.getByText('Servers')).toBeInTheDocument();
     });
+    await waitFor(() => {
+      expect(screen.getAllByText('node1').length).toBeGreaterThan(0);
+    });
+    expect(screen.getAllByText('node2').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('PowerEdge R640').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('ProLiant DL360').length).toBeGreaterThan(0);
   });
 });

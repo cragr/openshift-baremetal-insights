@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useEffect, useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import {
   Page,
   PageSection,
@@ -19,32 +18,62 @@ import {
   ToolbarItem,
   SearchInput,
   Label,
+  Button,
+  Tabs,
+  Tab,
+  TabTitleText,
+  Switch,
+  AlertGroup,
+  AlertVariant,
+  AlertActionCloseButton,
 } from '@patternfly/react-core';
-import { Table, Thead, Tr, Th, Tbody, Td } from '@patternfly/react-table';
-import { FirmwareResponse, FirmwareEntry } from '../types';
-import { getFirmware } from '../services/api';
+import { FirmwareResponse, Node } from '../types';
+import { getFirmware, getNodes, scheduleUpdates } from '../services/api';
 import { NamespaceDropdown } from '../components/NamespaceDropdown';
+import { ServersTab } from '../components/ServersTab';
+import { ComponentsTab } from '../components/ComponentsTab';
+import { FirmwareDetailDrawer } from '../components/FirmwareDetailDrawer';
+import { ScheduleUpdateModal } from '../components/ScheduleUpdateModal';
 
 export const Firmware: React.FC = () => {
-  const [data, setData] = useState<FirmwareResponse | null>(null);
+  const [firmwareData, setFirmwareData] = useState<FirmwareResponse | null>(null);
+  const [nodes, setNodes] = useState<Node[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [namespace, setNamespace] = useState('');
   const [searchValue, setSearchValue] = useState('');
-  const [sortBy, setSortBy] = useState<{ index: number; direction: 'asc' | 'desc' }>({
-    index: 0,
-    direction: 'asc',
-  });
+  const [activeTab, setActiveTab] = useState<string | number>('servers');
+  const [updatesOnly, setUpdatesOnly] = useState(false);
+
+  // Selection state
+  const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
+  const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
+
+  // Drawer state
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [scheduling, setScheduling] = useState(false);
+
+  // Alerts
+  const [alerts, setAlerts] = useState<{ key: number; title: string; variant: AlertVariant }[]>([]);
+  const [alertKey, setAlertKey] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const firmwareData = await getFirmware(namespace || undefined);
-        setData(firmwareData);
+        const [firmware, nodeData] = await Promise.all([
+          getFirmware(namespace || undefined),
+          getNodes(namespace || undefined),
+        ]);
+        setFirmwareData(firmware);
+        setNodes(nodeData);
         setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch firmware data');
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
       } finally {
         setLoading(false);
       }
@@ -52,74 +81,103 @@ export const Firmware: React.FC = () => {
     fetchData();
   }, [namespace]);
 
-  // Filter firmware entries based on search
-  const filteredFirmware = useMemo(() => {
-    if (!data?.firmware) return [];
-
-    let filtered = data.firmware;
-
-    if (searchValue) {
-      const searchLower = searchValue.toLowerCase();
-      filtered = filtered.filter(
-        (entry) =>
-          entry.node.toLowerCase().includes(searchLower) ||
-          entry.firmware.name.toLowerCase().includes(searchLower) ||
-          entry.firmware.componentType.toLowerCase().includes(searchLower)
-      );
-    }
-
-    return filtered;
-  }, [data, searchValue]);
-
-  // Sort firmware entries
-  const sortedFirmware = useMemo(() => {
-    const sorted = [...filteredFirmware];
-
-    sorted.sort((a, b) => {
-      let aValue: string | number = '';
-      let bValue: string | number = '';
-
-      switch (sortBy.index) {
-        case 0: // Node
-          aValue = a.node;
-          bValue = b.node;
-          break;
-        case 1: // Component
-          aValue = a.firmware.name;
-          bValue = b.firmware.name;
-          break;
-        case 2: // Installed Version
-          aValue = a.firmware.currentVersion;
-          bValue = b.firmware.currentVersion;
-          break;
-        case 3: // Available Version
-          aValue = a.firmware.availableVersion || '';
-          bValue = b.firmware.availableVersion || '';
-          break;
-        case 4: // Severity
-          aValue = a.firmware.severity || '';
-          bValue = b.firmware.severity || '';
-          break;
-        default:
-          return 0;
-      }
-
-      if (aValue < bValue) return sortBy.direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortBy.direction === 'asc' ? 1 : -1;
-      return 0;
+  // Build node models map for ComponentsTab
+  const nodeModels = useMemo(() => {
+    const map: Record<string, string> = {};
+    nodes.forEach((n) => {
+      map[n.name] = n.model;
     });
+    return map;
+  }, [nodes]);
 
-    return sorted;
-  }, [filteredFirmware, sortBy]);
-
-  const handleSort = (columnIndex: number) => {
-    setSortBy((prev) => ({
-      index: columnIndex,
-      direction: prev.index === columnIndex && prev.direction === 'asc' ? 'desc' : 'asc',
-    }));
+  // Calculate update counts for modal
+  const getUpdateCount = () => {
+    if (activeTab === 'servers') {
+      return nodes
+        .filter((n) => selectedNodes.includes(n.name))
+        .reduce((sum, n) => sum + n.updatesAvailable, 0);
+    } else {
+      return selectedComponents.length;
+    }
   };
 
-  if (loading && !data) {
+  const getSelectedNodeNames = () => {
+    if (activeTab === 'servers') {
+      return selectedNodes;
+    } else {
+      const nodeSet = new Set(selectedComponents.map((c) => c.split(':')[0]));
+      return Array.from(nodeSet);
+    }
+  };
+
+  const handleNodeClick = (node: Node) => {
+    setSelectedNode(node);
+    setDrawerOpen(true);
+  };
+
+  const handleScheduleClick = () => {
+    setModalOpen(true);
+  };
+
+  const handleConfirmSchedule = async () => {
+    setScheduling(true);
+    try {
+      const nodeNames = getSelectedNodeNames();
+      const components =
+        activeTab === 'components'
+          ? selectedComponents.map((c) => c.split(':')[1])
+          : undefined;
+
+      await scheduleUpdates({
+        nodes: nodeNames,
+        components,
+        mode: 'OnReboot',
+      });
+
+      setAlerts((prev) => [
+        ...prev,
+        {
+          key: alertKey,
+          title: `Successfully scheduled ${getUpdateCount()} updates on ${nodeNames.length} servers`,
+          variant: AlertVariant.success,
+        },
+      ]);
+      setAlertKey((k) => k + 1);
+
+      // Clear selections
+      setSelectedNodes([]);
+      setSelectedComponents([]);
+      setModalOpen(false);
+
+      // Refresh data
+      const [firmware, nodeData] = await Promise.all([
+        getFirmware(namespace || undefined),
+        getNodes(namespace || undefined),
+      ]);
+      setFirmwareData(firmware);
+      setNodes(nodeData);
+    } catch (err) {
+      setAlerts((prev) => [
+        ...prev,
+        {
+          key: alertKey,
+          title: `Failed to schedule updates: ${err instanceof Error ? err.message : 'Unknown error'}`,
+          variant: AlertVariant.danger,
+        },
+      ]);
+      setAlertKey((k) => k + 1);
+    } finally {
+      setScheduling(false);
+    }
+  };
+
+  const removeAlert = (key: number) => {
+    setAlerts((prev) => prev.filter((a) => a.key !== key));
+  };
+
+  const selectionCount = activeTab === 'servers' ? selectedNodes.length : selectedComponents.length;
+
+  if (loading && !firmwareData) {
     return (
       <Page>
         <PageSection>
@@ -141,24 +199,26 @@ export const Firmware: React.FC = () => {
     );
   }
 
-  const severityColor = (severity?: string) => {
-    switch (severity) {
-      case 'Critical':
-        return 'red';
-      case 'Recommended':
-        return 'orange';
-      case 'Optional':
-        return 'blue';
-      default:
-        return 'grey';
-    }
-  };
-
-  return (
+  const mainContent = (
     <Page>
-      {/* Header with title and namespace dropdown */}
+      {/* Alerts */}
+      <AlertGroup isToast isLiveRegion>
+        {alerts.map((alert) => (
+          <Alert
+            key={alert.key}
+            variant={alert.variant}
+            title={alert.title}
+            actionClose={<AlertActionCloseButton onClose={() => removeAlert(alert.key)} />}
+          />
+        ))}
+      </AlertGroup>
+
+      {/* Header */}
       <PageSection variant="light">
-        <Flex justifyContent={{ default: 'justifyContentSpaceBetween' }} alignItems={{ default: 'alignItemsCenter' }}>
+        <Flex
+          justifyContent={{ default: 'justifyContentSpaceBetween' }}
+          alignItems={{ default: 'alignItemsCenter' }}
+        >
           <FlexItem>
             <Title headingLevel="h1">Firmware</Title>
           </FlexItem>
@@ -169,26 +229,26 @@ export const Firmware: React.FC = () => {
       </PageSection>
 
       {/* Updates Summary Card */}
-      {data && (
+      {firmwareData && (
         <PageSection>
           <Card>
             <CardTitle>Updates Summary</CardTitle>
             <CardBody>
               <Split hasGutter>
                 <SplitItem>
-                  <strong>Total:</strong> {data.summary.total}
+                  <strong>Total:</strong> {firmwareData.summary.total}
                 </SplitItem>
                 <SplitItem>
-                  <strong>Updates Available:</strong> {data.summary.updatesAvailable}
+                  <strong>Updates Available:</strong> {firmwareData.summary.updatesAvailable}
                 </SplitItem>
                 <SplitItem>
-                  <Label color="red">Critical: {data.summary.critical}</Label>
+                  <Label color="red">Critical: {firmwareData.summary.critical}</Label>
                 </SplitItem>
                 <SplitItem>
-                  <Label color="orange">Recommended: {data.summary.recommended}</Label>
+                  <Label color="orange">Recommended: {firmwareData.summary.recommended}</Label>
                 </SplitItem>
                 <SplitItem>
-                  <Label color="blue">Optional: {data.summary.optional}</Label>
+                  <Label color="blue">Optional: {firmwareData.summary.optional}</Label>
                 </SplitItem>
               </Split>
             </CardBody>
@@ -196,141 +256,101 @@ export const Firmware: React.FC = () => {
         </PageSection>
       )}
 
-      {/* Firmware Inventory Table */}
+      {/* Tabs and Content */}
       <PageSection>
         <Card>
-          <CardTitle>Firmware Inventory</CardTitle>
           <CardBody>
-            {/* Toolbar with search */}
+            {/* Toolbar */}
             <Toolbar>
               <ToolbarContent>
                 <ToolbarItem>
                   <SearchInput
-                    placeholder="Search by node, component name, or type..."
+                    placeholder="Search by node name or model..."
                     value={searchValue}
                     onChange={(_e, value) => setSearchValue(value)}
                     onClear={() => setSearchValue('')}
+                    style={{ width: '300px' }}
                   />
+                </ToolbarItem>
+                <ToolbarItem>
+                  <Switch
+                    id="updates-only-switch"
+                    label="Updates only"
+                    isChecked={updatesOnly}
+                    onChange={(_e, checked) => setUpdatesOnly(checked)}
+                  />
+                </ToolbarItem>
+                <ToolbarItem align={{ default: 'alignRight' }}>
+                  <Button
+                    variant="primary"
+                    isDisabled={selectionCount === 0}
+                    onClick={handleScheduleClick}
+                  >
+                    Schedule Update{selectionCount > 0 ? ` (${selectionCount})` : ''}
+                  </Button>
                 </ToolbarItem>
               </ToolbarContent>
             </Toolbar>
 
-            {/* Table */}
-            <Table variant="compact">
-              <Thead>
-                <Tr>
-                  <Th
-                    sort={{
-                      sortBy: {
-                        index: sortBy.index,
-                        direction: sortBy.direction,
-                      },
-                      onSort: () => handleSort(0),
-                      columnIndex: 0,
-                    }}
-                  >
-                    Node
-                  </Th>
-                  <Th
-                    sort={{
-                      sortBy: {
-                        index: sortBy.index,
-                        direction: sortBy.direction,
-                      },
-                      onSort: () => handleSort(1),
-                      columnIndex: 1,
-                    }}
-                  >
-                    Component
-                  </Th>
-                  <Th
-                    sort={{
-                      sortBy: {
-                        index: sortBy.index,
-                        direction: sortBy.direction,
-                      },
-                      onSort: () => handleSort(2),
-                      columnIndex: 2,
-                    }}
-                  >
-                    Installed Version
-                  </Th>
-                  <Th
-                    sort={{
-                      sortBy: {
-                        index: sortBy.index,
-                        direction: sortBy.direction,
-                      },
-                      onSort: () => handleSort(3),
-                      columnIndex: 3,
-                    }}
-                  >
-                    Available Version
-                  </Th>
-                  <Th
-                    sort={{
-                      sortBy: {
-                        index: sortBy.index,
-                        direction: sortBy.direction,
-                      },
-                      onSort: () => handleSort(4),
-                      columnIndex: 4,
-                    }}
-                  >
-                    Severity
-                  </Th>
-                </Tr>
-              </Thead>
-              <Tbody>
-                {sortedFirmware.length === 0 ? (
-                  <Tr>
-                    <Td colSpan={5}>
-                      <p style={{ textAlign: 'center', padding: '2rem' }}>
-                        No firmware components found
-                      </p>
-                    </Td>
-                  </Tr>
-                ) : (
-                  sortedFirmware.map((entry: FirmwareEntry, index: number) => {
-                    const hasUpdate = !!entry.firmware.availableVersion;
-                    return (
-                      <Tr
-                        key={`${entry.node}-${entry.firmware.id}-${index}`}
-                        style={{
-                          backgroundColor: hasUpdate ? 'var(--pf-v5-global--warning-color--200)' : undefined,
-                        }}
-                      >
-                        <Td>
-                          <Link to={`/baremetal-insights/nodes/${entry.node}`}>{entry.node}</Link>
-                        </Td>
-                        <Td>
-                          {entry.firmware.name}
-                          <br />
-                          <small style={{ color: 'var(--pf-v5-global--Color--200)' }}>
-                            {entry.firmware.componentType}
-                          </small>
-                        </Td>
-                        <Td>{entry.firmware.currentVersion}</Td>
-                        <Td>{entry.firmware.availableVersion || '-'}</Td>
-                        <Td>
-                          {entry.firmware.severity ? (
-                            <Label color={severityColor(entry.firmware.severity)}>
-                              {entry.firmware.severity}
-                            </Label>
-                          ) : (
-                            '-'
-                          )}
-                        </Td>
-                      </Tr>
-                    );
-                  })
-                )}
-              </Tbody>
-            </Table>
+            {/* Tabs */}
+            <Tabs
+              activeKey={activeTab}
+              onSelect={(_e, key) => {
+                setActiveTab(key);
+                setSelectedNodes([]);
+                setSelectedComponents([]);
+              }}
+              style={{ marginTop: '1rem' }}
+            >
+              <Tab eventKey="servers" title={<TabTitleText>Servers</TabTitleText>}>
+                <div style={{ marginTop: '1rem' }}>
+                  <ServersTab
+                    nodes={nodes}
+                    searchValue={searchValue}
+                    updatesOnly={updatesOnly}
+                    selectedNodes={selectedNodes}
+                    onSelectionChange={setSelectedNodes}
+                    onNodeClick={handleNodeClick}
+                  />
+                </div>
+              </Tab>
+              <Tab eventKey="components" title={<TabTitleText>Components</TabTitleText>}>
+                <div style={{ marginTop: '1rem' }}>
+                  <ComponentsTab
+                    firmware={firmwareData?.firmware || []}
+                    nodeModels={nodeModels}
+                    searchValue={searchValue}
+                    updatesOnly={updatesOnly}
+                    selectedComponents={selectedComponents}
+                    onSelectionChange={setSelectedComponents}
+                  />
+                </div>
+              </Tab>
+            </Tabs>
           </CardBody>
         </Card>
       </PageSection>
+
+      {/* Schedule Update Modal */}
+      <ScheduleUpdateModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onConfirm={handleConfirmSchedule}
+        selectedNodes={getSelectedNodeNames()}
+        updateCount={getUpdateCount()}
+        isLoading={scheduling}
+      />
     </Page>
+  );
+
+  return (
+    <FirmwareDetailDrawer
+      isOpen={drawerOpen}
+      node={selectedNode}
+      onClose={() => setDrawerOpen(false)}
+    >
+      {mainContent}
+    </FirmwareDetailDrawer>
   );
 };
 
