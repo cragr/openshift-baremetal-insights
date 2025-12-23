@@ -73,6 +73,7 @@ func (c *Client) GetFirmwareInventory(ctx context.Context, bmcAddress, username,
 			Model:        sys.Model,
 			Manufacturer: sys.Manufacturer,
 			ServiceTag:   sys.SKU,
+			PowerState:   parsePowerState(sys.PowerState),
 		}
 	}
 
@@ -167,6 +168,18 @@ func parseHealthStatus(h common.Health) models.HealthStatus {
 		return models.HealthCritical
 	default:
 		return models.HealthUnknown
+	}
+}
+
+// parsePowerState converts gofish PowerState to internal PowerState
+func parsePowerState(ps redfish.PowerState) models.PowerState {
+	switch ps {
+	case redfish.OnPowerState:
+		return models.PowerOn
+	case redfish.OffPowerState:
+		return models.PowerOff
+	default:
+		return models.PowerUnknown
 	}
 }
 

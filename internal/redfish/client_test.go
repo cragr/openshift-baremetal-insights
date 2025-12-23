@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stmcginnis/gofish/common"
+	"github.com/stmcginnis/gofish/redfish"
 
 	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
@@ -63,6 +64,26 @@ func TestParseHealthStatus(t *testing.T) {
 		got := parseHealthStatus(tt.input)
 		if got != tt.want {
 			t.Errorf("parseHealthStatus(%q) = %v, want %v", tt.input, got, tt.want)
+		}
+	}
+}
+
+func TestParsePowerState(t *testing.T) {
+	tests := []struct {
+		input redfish.PowerState
+		want  models.PowerState
+	}{
+		{redfish.OnPowerState, models.PowerOn},
+		{redfish.OffPowerState, models.PowerOff},
+		{redfish.PowerState(""), models.PowerUnknown},
+		{redfish.PowerState("PoweringOn"), models.PowerUnknown},
+		{redfish.PowerState("PoweringOff"), models.PowerUnknown},
+		{redfish.PowerState("Invalid"), models.PowerUnknown},
+	}
+	for _, tt := range tests {
+		got := parsePowerState(tt.input)
+		if got != tt.want {
+			t.Errorf("parsePowerState(%q) = %v, want %v", tt.input, got, tt.want)
 		}
 	}
 }

@@ -1,0 +1,117 @@
+.dashboard-card {
+  min-height: 250px;
+}
+
+.dashboard-card--clickable {
+  cursor: pointer;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.dashboard-card--clickable:hover {
+  box-shadow: var(--pf-v5-global--BoxShadow--md);
+}
+
+.dashboard-card__body--centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 180px;
+}
+
+.dashboard-card__body--chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--pf-v5-global--spacer--md);
+}
+
+.dashboard-card__chart-container {
+  width: 200px;
+  height: 200px;
+}
+
+.dashboard-card__number {
+  font-size: 4rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.dashboard-card__subtitle {
+  margin-top: var(--pf-v5-global--spacer--sm);
+  font-size: var(--pf-v5-global--FontSize--md);
+}
+
+.dashboard-card__subtitle--critical {
+  color: var(--pf-v5-global--danger-color--100);
+}
+
+.dashboard-card__legend {
+  display: flex;
+  gap: var(--pf-v5-global--spacer--md);
+  margin-top: var(--pf-v5-global--spacer--sm);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.dashboard-card__legend-item {
+  font-size: var(--pf-v5-global--FontSize--sm);
+}
+
+.dashboard-card__legend-item--healthy {
+  color: #3E8635;
+}
+
+.dashboard-card__legend-item--warning {
+  color: #F0AB00;
+}
+
+.dashboard-card__legend-item--critical {
+  color: #C9190B;
+}
+
+.dashboard-card__legend-item--on {
+  color: #06C;
+}
+
+.dashboard-card__legend-item--off {
+  color: #6A6E73;
+}
+
+/* Server Models Card */
+.dashboard-card--models {
+  min-height: auto;
+}
+
+.dashboard-card__body--list {
+  padding: var(--pf-v5-global--spacer--md);
+}
+
+.dashboard-card__model-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--pf-v5-global--spacer--sm);
+}
+
+.dashboard-card__model-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--pf-v5-global--spacer--sm) var(--pf-v5-global--spacer--md);
+  background-color: var(--pf-v5-global--BackgroundColor--200);
+  border-radius: var(--pf-v5-global--BorderRadius--sm);
+}
+
+.dashboard-card__model-name {
+  font-weight: var(--pf-v5-global--FontWeight--normal);
+}
+
+.dashboard-card__model-count {
+  font-weight: var(--pf-v5-global--FontWeight--bold);
+  color: var(--pf-v5-global--primary-color--100);
+}
+
+.dashboard-card__no-data {
+  color: var(--pf-v5-global--Color--200);
+  font-style: italic;
+}
