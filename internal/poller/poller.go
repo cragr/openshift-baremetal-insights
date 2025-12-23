@@ -140,6 +140,7 @@ func (p *Poller) pollHost(ctx context.Context, host discovery.DiscoveredHost) {
 		node.Model = nodeInfo.Model
 		node.Manufacturer = nodeInfo.Manufacturer
 		node.ServiceTag = nodeInfo.ServiceTag
+		node.PowerState = nodeInfo.PowerState
 
 		// Skip non-Dell hardware
 		if !discovery.IsDellHardware(node.Manufacturer) {
