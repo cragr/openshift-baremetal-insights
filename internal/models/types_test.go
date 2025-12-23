@@ -101,3 +101,21 @@ func TestPowerState_String(t *testing.T) {
 		}
 	}
 }
+
+func TestTask_IsComplete(t *testing.T) {
+	tests := []struct {
+		state    TaskState
+		complete bool
+	}{
+		{TaskPending, false},
+		{TaskRunning, false},
+		{TaskCompleted, true},
+		{TaskFailed, true},
+	}
+	for _, tt := range tests {
+		task := Task{TaskState: tt.state}
+		if got := task.IsComplete(); got != tt.complete {
+			t.Errorf("Task.IsComplete() with state %v = %v, want %v", tt.state, got, tt.complete)
+		}
+	}
+}

@@ -173,3 +173,30 @@ type HealthEvent struct {
 	Message   string       `json:"message"`
 	NodeName  string       `json:"nodeName,omitempty"`
 }
+
+// TaskState represents the state of a Redfish task
+type TaskState string
+
+const (
+	TaskPending   TaskState = "Pending"
+	TaskRunning   TaskState = "Running"
+	TaskCompleted TaskState = "Completed"
+	TaskFailed    TaskState = "Exception"
+)
+
+// Task represents a Redfish Task Service job
+type Task struct {
+	Node            string    `json:"node"`
+	Namespace       string    `json:"namespace"`
+	TaskID          string    `json:"taskId"`
+	TaskType        string    `json:"taskType"`
+	TaskState       TaskState `json:"taskState"`
+	PercentComplete int       `json:"percentComplete"`
+	StartTime       time.Time `json:"startTime"`
+	Message         string    `json:"message"`
+}
+
+// IsComplete returns true if the task is in a terminal state
+func (t *Task) IsComplete() bool {
+	return t.TaskState == TaskCompleted || t.TaskState == TaskFailed
+}
