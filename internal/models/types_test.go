@@ -149,3 +149,16 @@ func TestDashboardStats_Struct(t *testing.T) {
 		t.Errorf("TotalNodes = %d, want 10", stats.TotalNodes)
 	}
 }
+
+func TestFirmwareComponent_Severity(t *testing.T) {
+	fw := FirmwareComponent{
+		ID:               "bios",
+		Name:             "BIOS",
+		CurrentVersion:   "1.0",
+		AvailableVersion: "2.0",
+		Severity:         SeverityCritical,
+	}
+	if fw.Severity != SeverityCritical {
+		t.Errorf("Severity = %v, want Critical", fw.Severity)
+	}
+}

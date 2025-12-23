@@ -21,6 +21,15 @@ const (
 	PowerUnknown PowerState = "Unknown"
 )
 
+// Severity represents update criticality
+type Severity string
+
+const (
+	SeverityCritical    Severity = "Critical"
+	SeverityRecommended Severity = "Recommended"
+	SeverityOptional    Severity = "Optional"
+)
+
 // Node represents a discovered bare metal server
 type Node struct {
 	Name             string              `json:"name"`
@@ -44,12 +53,13 @@ type Node struct {
 
 // FirmwareComponent represents a single firmware component on a server
 type FirmwareComponent struct {
-	ID               string `json:"id"`
-	Name             string `json:"name"`
-	CurrentVersion   string `json:"currentVersion"`
-	AvailableVersion string `json:"availableVersion,omitempty"`
-	Updateable       bool   `json:"updateable"`
-	ComponentType    string `json:"componentType"`
+	ID               string   `json:"id"`
+	Name             string   `json:"name"`
+	CurrentVersion   string   `json:"currentVersion"`
+	AvailableVersion string   `json:"availableVersion,omitempty"`
+	Updateable       bool     `json:"updateable"`
+	ComponentType    string   `json:"componentType"`
+	Severity         Severity `json:"severity,omitempty"`
 }
 
 // NeedsUpdate returns true if an update is available
