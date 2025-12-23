@@ -39,6 +39,36 @@ export interface PowerSummary {
   status: HealthStatus;
 }
 
+export interface NetworkAdapter {
+  name: string;
+  model: string;
+  port: string;
+  linkStatus: 'Up' | 'Down' | 'Unknown';
+  linkSpeed: string;
+  macAddress: string;
+}
+
+export interface StorageController {
+  name: string;
+  deviceDescription: string;
+  pcieSlot: string;
+  firmwareVersion: string;
+}
+
+export interface Disk {
+  name: string;
+  state: string;
+  slotNumber: string;
+  size: string;
+  busProtocol: string;
+  mediaType: string;
+}
+
+export interface StorageDetail {
+  controllers: StorageController[];
+  disks: Disk[];
+}
+
 export interface Node {
   name: string;
   namespace: string;
@@ -56,6 +86,8 @@ export interface Node {
   healthRollup?: HealthRollup;
   thermalSummary?: ThermalSummary;
   powerSummary?: PowerSummary;
+  networkAdapters?: NetworkAdapter[];
+  storage?: StorageDetail;
 }
 
 export interface HealthEvent {
