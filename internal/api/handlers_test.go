@@ -317,3 +317,26 @@ func TestServer_ListTasks(t *testing.T) {
 		t.Errorf("tasks count = %d, want 1", len(tasks))
 	}
 }
+
+func TestServer_ListNodes_NamespaceFilter(t *testing.T) {
+	s := store.New()
+	s.SetNode(models.Node{Name: "node-1", Namespace: "ns-a"})
+	s.SetNode(models.Node{Name: "node-2", Namespace: "ns-b"})
+
+	srv := NewServer(s, ":8080", "", "")
+
+	req := httptest.NewRequest("GET", "/api/v1/nodes?namespace=ns-a", nil)
+	w := httptest.NewRecorder()
+	srv.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+
+	var resp map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &resp)
+	nodes := resp["nodes"].([]interface{})
+	if len(nodes) != 1 {
+		t.Errorf("nodes count = %d, want 1", len(nodes))
+	}
+}

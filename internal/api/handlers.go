@@ -12,7 +12,8 @@ import (
 )
 
 func (s *Server) listNodes(w http.ResponseWriter, r *http.Request) {
-	nodes := s.store.ListNodes()
+	namespace := r.URL.Query().Get("namespace")
+	nodes := s.store.ListNodesByNamespace(namespace)
 
 	response := map[string]interface{}{
 		"nodes": nodes,
