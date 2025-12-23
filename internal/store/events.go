@@ -4,7 +4,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 // EventStore provides thread-safe storage for health events

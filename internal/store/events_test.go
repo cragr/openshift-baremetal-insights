@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 func TestEventStore_AddAndList(t *testing.T) {
