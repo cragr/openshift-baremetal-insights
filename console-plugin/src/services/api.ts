@@ -9,12 +9,18 @@ import {
   PowerSummary,
   HealthEvent,
   EventsResponse,
+  DashboardStats,
+  Task,
+  TasksResponse,
+  FirmwareResponse,
+  NamespacesResponse,
 } from '../types';
 
 const API_BASE = '/api/proxy/plugin/openshift-baremetal-insights-plugin/baremetal-insights';
 
-export const getNodes = async (): Promise<Node[]> => {
-  const response = (await consoleFetchJSON(`${API_BASE}/api/v1/nodes`)) as NodesResponse;
+export const getNodes = async (namespace?: string): Promise<Node[]> => {
+  const params = namespace ? `?namespace=${encodeURIComponent(namespace)}` : '';
+  const response = (await consoleFetchJSON(`${API_BASE}/api/v1/nodes${params}`)) as NodesResponse;
   return response.nodes || [];
 };
 
@@ -56,4 +62,25 @@ export const getEvents = async (limit?: number, node?: string): Promise<HealthEv
 export const getUpdates = async (): Promise<UpdatesResponse> => {
   const response = (await consoleFetchJSON(`${API_BASE}/api/v1/updates`)) as UpdatesResponse;
   return { updates: response.updates || [] };
+};
+
+export const getDashboard = async (namespace?: string): Promise<DashboardStats> => {
+  const params = namespace ? `?namespace=${encodeURIComponent(namespace)}` : '';
+  return consoleFetchJSON(`${API_BASE}/api/v1/dashboard${params}`);
+};
+
+export const getNamespaces = async (): Promise<string[]> => {
+  const response = (await consoleFetchJSON(`${API_BASE}/api/v1/namespaces`)) as NamespacesResponse;
+  return response.namespaces || [];
+};
+
+export const getTasks = async (namespace?: string): Promise<Task[]> => {
+  const params = namespace ? `?namespace=${encodeURIComponent(namespace)}` : '';
+  const response = (await consoleFetchJSON(`${API_BASE}/api/v1/tasks${params}`)) as TasksResponse;
+  return response.tasks || [];
+};
+
+export const getFirmware = async (namespace?: string): Promise<FirmwareResponse> => {
+  const params = namespace ? `?namespace=${encodeURIComponent(namespace)}` : '';
+  return consoleFetchJSON(`${API_BASE}/api/v1/firmware${params}`);
 };
