@@ -1,14 +1,14 @@
-# helm/openshift-redfish-insights/templates/plugin-service.yaml
+# helm/openshift-baremetal-insights/templates/plugin-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "redfish-insights.fullname" . }}-plugin
+  name: {{ include "baremetal-insights.fullname" . }}-plugin
   namespace: {{ .Values.namespace.name }}
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
     app.kubernetes.io/component: plugin
   annotations:
-    service.beta.openshift.io/serving-cert-secret-name: {{ include "redfish-insights.fullname" . }}-plugin-cert
+    service.beta.openshift.io/serving-cert-secret-name: {{ include "baremetal-insights.fullname" . }}-plugin-cert
 spec:
   type: ClusterIP
   ports:
@@ -17,4 +17,4 @@ spec:
       protocol: TCP
       name: https
   selector:
-    {{- include "redfish-insights.plugin.selectorLabels" . | nindent 4 }}
+    {{- include "baremetal-insights.plugin.selectorLabels" . | nindent 4 }}

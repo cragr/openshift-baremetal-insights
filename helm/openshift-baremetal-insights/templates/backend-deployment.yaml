@@ -1,23 +1,23 @@
-# helm/openshift-redfish-insights/templates/backend-deployment.yaml
+# helm/openshift-baremetal-insights/templates/backend-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "redfish-insights.fullname" . }}-backend
+  name: {{ include "baremetal-insights.fullname" . }}-backend
   namespace: {{ .Values.namespace.name }}
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
     app.kubernetes.io/component: backend
 spec:
   replicas: {{ .Values.backend.replicas }}
   selector:
     matchLabels:
-      {{- include "redfish-insights.backend.selectorLabels" . | nindent 6 }}
+      {{- include "baremetal-insights.backend.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "redfish-insights.backend.selectorLabels" . | nindent 8 }}
+        {{- include "baremetal-insights.backend.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "redfish-insights.fullname" . }}-backend
+      serviceAccountName: {{ include "baremetal-insights.fullname" . }}-backend
       containers:
         - name: backend
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
@@ -33,7 +33,7 @@ spec:
               value: /var/serving-cert/tls.key
           envFrom:
             - configMapRef:
-                name: {{ include "redfish-insights.fullname" . }}-backend
+                name: {{ include "baremetal-insights.fullname" . }}-backend
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
           volumeMounts:
@@ -57,4 +57,4 @@ spec:
       volumes:
         - name: backend-serving-cert
           secret:
-            secretName: {{ include "redfish-insights.fullname" . }}-backend-cert
+            secretName: {{ include "baremetal-insights.fullname" . }}-backend-cert

@@ -4,5 +4,5 @@ kind: Namespace
 metadata:
   name: {{ .Values.namespace.name }}
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
 {{- end }}

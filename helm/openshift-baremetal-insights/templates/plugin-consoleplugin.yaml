@@ -1,25 +1,25 @@
-# helm/openshift-redfish-insights/templates/plugin-consoleplugin.yaml
+# helm/openshift-baremetal-insights/templates/plugin-consoleplugin.yaml
 apiVersion: console.openshift.io/v1
 kind: ConsolePlugin
 metadata:
-  name: redfish-insights-plugin
+  name: baremetal-insights-plugin
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
 spec:
   displayName: "Firmware Insights"
   backend:
     type: Service
     service:
-      name: {{ include "redfish-insights.fullname" . }}-plugin
+      name: {{ include "baremetal-insights.fullname" . }}-plugin
       namespace: {{ .Values.namespace.name }}
       port: {{ .Values.plugin.service.port }}
       basePath: "/"
   proxy:
-    - alias: redfish-insights
+    - alias: baremetal-insights
       endpoint:
         type: Service
         service:
-          name: {{ include "redfish-insights.fullname" . }}-backend
+          name: {{ include "baremetal-insights.fullname" . }}-backend
           namespace: {{ .Values.namespace.name }}
           port: {{ .Values.backend.service.port }}
       authorization: UserToken

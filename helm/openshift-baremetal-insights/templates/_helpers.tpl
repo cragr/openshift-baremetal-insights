@@ -1,14 +1,14 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "redfish-insights.name" -}}
+{{- define "baremetal-insights.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
 */}}
-{{- define "redfish-insights.fullname" -}}
+{{- define "baremetal-insights.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -24,9 +24,9 @@ Create a default fully qualified app name.
 {{/*
 Common labels
 */}}
-{{- define "redfish-insights.labels" -}}
+{{- define "baremetal-insights.labels" -}}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-app.kubernetes.io/name: {{ include "redfish-insights.name" . }}
+app.kubernetes.io/name: {{ include "baremetal-insights.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
@@ -35,8 +35,8 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Backend selector labels
 */}}
-{{- define "redfish-insights.backend.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "redfish-insights.name" . }}
+{{- define "baremetal-insights.backend.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "baremetal-insights.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: backend
 {{- end }}
@@ -44,8 +44,8 @@ app.kubernetes.io/component: backend
 {{/*
 Plugin selector labels
 */}}
-{{- define "redfish-insights.plugin.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "redfish-insights.name" . }}
+{{- define "baremetal-insights.plugin.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "baremetal-insights.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: plugin
 {{- end }}

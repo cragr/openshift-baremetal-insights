@@ -1,21 +1,21 @@
-# helm/openshift-redfish-insights/templates/plugin-deployment.yaml
+# helm/openshift-baremetal-insights/templates/plugin-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "redfish-insights.fullname" . }}-plugin
+  name: {{ include "baremetal-insights.fullname" . }}-plugin
   namespace: {{ .Values.namespace.name }}
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
     app.kubernetes.io/component: plugin
 spec:
   replicas: {{ .Values.plugin.replicas }}
   selector:
     matchLabels:
-      {{- include "redfish-insights.plugin.selectorLabels" . | nindent 6 }}
+      {{- include "baremetal-insights.plugin.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "redfish-insights.plugin.selectorLabels" . | nindent 8 }}
+        {{- include "baremetal-insights.plugin.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: plugin
@@ -34,5 +34,5 @@ spec:
       volumes:
         - name: plugin-serving-cert
           secret:
-            secretName: {{ include "redfish-insights.fullname" . }}-plugin-cert
+            secretName: {{ include "baremetal-insights.fullname" . }}-plugin-cert
             defaultMode: 420

@@ -1,11 +1,11 @@
-# helm/openshift-redfish-insights/templates/backend-ca-configmap.yaml
+# helm/openshift-baremetal-insights/templates/backend-ca-configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "redfish-insights.fullname" . }}-backend-ca
+  name: {{ include "baremetal-insights.fullname" . }}-backend-ca
   namespace: {{ .Values.namespace.name }}
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
   annotations:
     service.beta.openshift.io/inject-cabundle: "true"
 data: {}
