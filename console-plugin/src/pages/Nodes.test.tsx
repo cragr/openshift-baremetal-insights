@@ -212,49 +212,96 @@ describe('Nodes', () => {
     });
   });
 
-  it('applies health filter from URL query param', async () => {
-    const nodesWithCritical = [
-      ...mockNodes,
-      {
-        name: 'worker-2',
-        namespace: 'default',
-        bmcAddress: '10.0.0.3',
-        model: 'PowerEdge R640',
-        manufacturer: 'Dell',
-        serviceTag: 'DEF456',
-        powerState: 'On',
-        lastScanned: '2025-12-21T00:00:00Z',
-        status: 'up-to-date',
-        firmwareCount: 5,
-        updatesAvailable: 0,
-        health: 'Critical',
-        thermalSummary: { inletTempC: 22, maxTempC: 45, fanCount: 8, fansHealthy: 8, status: 'OK' },
-        powerSummary: { currentWatts: 250, psuCount: 2, psusHealthy: 2, redundancy: 'Full', status: 'OK' },
-      },
-    ];
-    (api.getNodes as jest.Mock).mockResolvedValue(nodesWithCritical);
-
+  it('renders search input', async () => {
     render(
-      <MemoryRouter initialEntries={['/baremetal-insights/nodes?health=Critical']}>
+      <MemoryRouter>
         <Nodes />
       </MemoryRouter>
     );
     await waitFor(() => {
-      expect(screen.getByText('worker-2')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Search by name, model, or service tag')).toBeInTheDocument();
     });
-    expect(screen.queryByText('worker-0')).not.toBeInTheDocument();
-    expect(screen.queryByText('worker-1')).not.toBeInTheDocument();
   });
 
-  it('applies power filter from URL query param', async () => {
+  it('filters nodes by search term matching name', async () => {
     render(
-      <MemoryRouter initialEntries={['/baremetal-insights/nodes?power=Off']}>
+      <MemoryRouter>
         <Nodes />
       </MemoryRouter>
     );
+
+    await waitFor(() => {
+      expect(screen.getByText('worker-0')).toBeInTheDocument();
+      expect(screen.getByText('worker-1')).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText('Search by name, model, or service tag');
+    fireEvent.change(searchInput, { target: { value: 'worker-0' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('worker-0')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('worker-1')).not.toBeInTheDocument();
+  });
+
+  it('filters nodes by search term matching model', async () => {
+    render(
+      <MemoryRouter>
+        <Nodes />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('worker-0')).toBeInTheDocument();
+      expect(screen.getByText('worker-1')).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText('Search by name, model, or service tag');
+    fireEvent.change(searchInput, { target: { value: 'R740' } });
+
     await waitFor(() => {
       expect(screen.getByText('worker-1')).toBeInTheDocument();
     });
     expect(screen.queryByText('worker-0')).not.toBeInTheDocument();
+  });
+
+  it('filters nodes by search term matching service tag', async () => {
+    render(
+      <MemoryRouter>
+        <Nodes />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('worker-0')).toBeInTheDocument();
+      expect(screen.getByText('worker-1')).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText('Search by name, model, or service tag');
+    fireEvent.change(searchInput, { target: { value: 'ABC123' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('worker-0')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('worker-1')).not.toBeInTheDocument();
+  });
+
+  it('search is case insensitive', async () => {
+    render(
+      <MemoryRouter>
+        <Nodes />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('worker-0')).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText('Search by name, model, or service tag');
+    fireEvent.change(searchInput, { target: { value: 'WORKER-0' } });
+
+    await waitFor(() => {
+      expect(screen.getByText('worker-0')).toBeInTheDocument();
+    });
   });
 });

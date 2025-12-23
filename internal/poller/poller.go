@@ -216,6 +216,32 @@ func (p *Poller) pollHost(ctx context.Context, host discovery.DiscoveredHost) {
 		node.PowerSummary = powerSummary
 	}
 
+	// Get network adapter details
+	networkAdapters, err := p.redfish.GetNetworkAdapters(
+		ctx,
+		host.BMCAddress,
+		host.Credentials.Username,
+		host.Credentials.Password,
+	)
+	if err != nil {
+		log.Printf("Failed to get network adapters for %s: %v", host.Name, err)
+	} else {
+		node.NetworkAdapters = networkAdapters
+	}
+
+	// Get storage details
+	storageDetail, err := p.redfish.GetStorageDetails(
+		ctx,
+		host.BMCAddress,
+		host.Credentials.Username,
+		host.Credentials.Password,
+	)
+	if err != nil {
+		log.Printf("Failed to get storage details for %s: %v", host.Name, err)
+	} else {
+		node.Storage = storageDetail
+	}
+
 	// Get events and add to event store
 	if p.eventStore != nil {
 		events, err := p.redfish.GetEvents(

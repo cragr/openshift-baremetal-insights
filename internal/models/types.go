@@ -49,6 +49,8 @@ type Node struct {
 	HealthRollup     *HealthRollup       `json:"healthRollup,omitempty"`
 	ThermalSummary   *ThermalSummary     `json:"thermalSummary,omitempty"`
 	PowerSummary     *PowerSummary       `json:"powerSummary,omitempty"`
+	NetworkAdapters  []NetworkAdapter    `json:"networkAdapters,omitempty"`
+	Storage          *StorageDetail      `json:"storage,omitempty"`
 }
 
 // FirmwareComponent represents a single firmware component on a server
@@ -173,6 +175,40 @@ type PowerDetail struct {
 	CurrentWatts int          `json:"currentWatts"`
 	PSUs         []PSUReading `json:"psus"`
 	Redundancy   string       `json:"redundancy"`
+}
+
+// NetworkAdapter represents a network interface card
+type NetworkAdapter struct {
+	Name       string `json:"name"`
+	Model      string `json:"model"`
+	Port       string `json:"port"`
+	LinkStatus string `json:"linkStatus"`
+	LinkSpeed  string `json:"linkSpeed"`
+	MACAddress string `json:"macAddress"`
+}
+
+// StorageController represents a RAID/storage controller
+type StorageController struct {
+	Name              string `json:"name"`
+	DeviceDescription string `json:"deviceDescription"`
+	PCIeSlot          string `json:"pcieSlot"`
+	FirmwareVersion   string `json:"firmwareVersion"`
+}
+
+// Disk represents a physical drive
+type Disk struct {
+	Name        string `json:"name"`
+	State       string `json:"state"`
+	SlotNumber  string `json:"slotNumber"`
+	Size        string `json:"size"`
+	BusProtocol string `json:"busProtocol"`
+	MediaType   string `json:"mediaType"`
+}
+
+// StorageDetail holds controller and disk information
+type StorageDetail struct {
+	Controllers []StorageController `json:"controllers"`
+	Disks       []Disk              `json:"disks"`
 }
 
 // HealthEvent represents a system event log entry
