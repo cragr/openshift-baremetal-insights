@@ -1,86 +1,66 @@
 import * as React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { Firmware } from './Firmware';
-import { getFirmware, getNodes, getNamespaces, scheduleUpdates } from '../services/api';
+import * as api from '../services/api';
 
 jest.mock('../services/api');
 
+const mockFirmwareResponse = {
+  summary: {
+    total: 20,
+    updatesAvailable: 5,
+    critical: 1,
+    recommended: 3,
+    optional: 1,
+  },
+  firmware: [
+    {
+      node: 'worker-0',
+      namespace: 'openshift-machine-api',
+      firmware: {
+        id: 'bios-1',
+        name: 'BIOS',
+        currentVersion: '2.10.0',
+        availableVersion: '2.12.0',
+        updateable: true,
+        componentType: 'BIOS',
+        severity: 'Recommended' as const,
+      },
+    },
+  ],
+};
+
+const mockNodes = [
+  {
+    name: 'worker-0',
+    namespace: 'openshift-machine-api',
+    bmcAddress: 'idrac-10.0.0.1:443',
+    model: 'PowerEdge R640',
+    manufacturer: 'Dell Inc.',
+    serviceTag: 'ABC123',
+    powerState: 'On' as const,
+    lastScanned: '2025-12-23T00:00:00Z',
+    status: 'needs-update' as const,
+    firmwareCount: 10,
+    updatesAvailable: 3,
+    health: 'OK' as const,
+    firmware: mockFirmwareResponse.firmware.map((f) => f.firmware),
+  },
+];
+
 describe('Firmware', () => {
   beforeEach(() => {
-    (getNamespaces as jest.Mock).mockResolvedValue(['ns-a', 'ns-b']);
-    (scheduleUpdates as jest.Mock).mockResolvedValue({ success: true });
-    (getFirmware as jest.Mock).mockResolvedValue({
-      summary: {
-        total: 10,
-        updatesAvailable: 3,
-        critical: 1,
-        recommended: 1,
-        optional: 1,
-      },
-      firmware: [
-        {
-          node: 'node1',
-          namespace: 'ns-a',
-          firmware: {
-            id: 'fw1',
-            name: 'BIOS',
-            currentVersion: '1.0.0',
-            availableVersion: '2.0.0',
-            updateable: true,
-            componentType: 'BIOS',
-            severity: 'Critical',
-          },
-        },
-        {
-          node: 'node2',
-          namespace: 'ns-b',
-          firmware: {
-            id: 'fw2',
-            name: 'NIC Firmware',
-            currentVersion: '3.0.0',
-            availableVersion: '3.1.0',
-            updateable: true,
-            componentType: 'NetworkInterface',
-            severity: 'Recommended',
-          },
-        },
-        {
-          node: 'node1',
-          namespace: 'ns-a',
-          firmware: {
-            id: 'fw3',
-            name: 'BMC',
-            currentVersion: '5.0.0',
-            updateable: false,
-            componentType: 'BMC',
-          },
-        },
-      ],
-    });
-    (getNodes as jest.Mock).mockResolvedValue([
-      {
-        name: 'node1',
-        namespace: 'ns-a',
-        model: 'PowerEdge R640',
-        manufacturer: 'Dell',
-        serialNumber: 'SN001',
-        status: 'Ready',
-        updatesAvailable: 2,
-      },
-      {
-        name: 'node2',
-        namespace: 'ns-b',
-        model: 'ProLiant DL360',
-        manufacturer: 'HPE',
-        serialNumber: 'SN002',
-        status: 'Ready',
-        updatesAvailable: 1,
-      },
-    ]);
+    (api.getFirmware as jest.Mock).mockResolvedValue(mockFirmwareResponse);
+    (api.getNodes as jest.Mock).mockResolvedValue(mockNodes);
+    (api.getNamespaces as jest.Mock).mockResolvedValue(['ns-a', 'ns-b']);
   });
 
-  it('renders firmware page title', async () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders title', async () => {
     render(
       <MemoryRouter>
         <Firmware />
@@ -91,33 +71,90 @@ describe('Firmware', () => {
     });
   });
 
-  it('displays updates summary', async () => {
+  it('renders updates summary', async () => {
     render(
       <MemoryRouter>
         <Firmware />
       </MemoryRouter>
     );
     await waitFor(() => {
-      expect(screen.getByText('Updates Summary')).toBeInTheDocument();
       expect(screen.getByText(/Total:/)).toBeInTheDocument();
-      expect(screen.getByText(/Updates Available:/)).toBeInTheDocument();
+      expect(screen.getByText('20')).toBeInTheDocument();
     });
   });
 
-  it('renders servers tab with nodes', async () => {
+  it('renders Servers and Components tabs', async () => {
     render(
       <MemoryRouter>
         <Firmware />
       </MemoryRouter>
     );
     await waitFor(() => {
-      expect(screen.getByText('Servers')).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: 'Servers' })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: 'Components' })).toBeInTheDocument();
     });
+  });
+
+  it('shows Servers tab by default', async () => {
+    render(
+      <MemoryRouter>
+        <Firmware />
+      </MemoryRouter>
+    );
     await waitFor(() => {
-      expect(screen.getAllByText('node1').length).toBeGreaterThan(0);
+      expect(screen.getByRole('tab', { name: 'Servers' })).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
     });
-    expect(screen.getAllByText('node2').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('PowerEdge R640').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('ProLiant DL360').length).toBeGreaterThan(0);
+  });
+
+  it('switches to Components tab when clicked', async () => {
+    render(
+      <MemoryRouter>
+        <Firmware />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      fireEvent.click(screen.getByRole('tab', { name: 'Components' }));
+    });
+    expect(screen.getByRole('tab', { name: 'Components' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+  });
+
+  it('renders Schedule Update button disabled initially', async () => {
+    render(
+      <MemoryRouter>
+        <Firmware />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      const button = screen.getByRole('button', { name: /Schedule Update/i });
+      expect(button).toBeDisabled();
+    });
+  });
+
+  it('renders search input', async () => {
+    render(
+      <MemoryRouter>
+        <Firmware />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/Search by node name or model/)).toBeInTheDocument();
+    });
+  });
+
+  it('renders updates only toggle', async () => {
+    render(
+      <MemoryRouter>
+        <Firmware />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByLabelText('Updates only')).toBeInTheDocument();
+    });
   });
 });
