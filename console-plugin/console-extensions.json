@@ -38,16 +38,6 @@
     }
   },
   {
-    "type": "console.navigation/href",
-    "properties": {
-      "id": "baremetal-events",
-      "perspective": "admin",
-      "section": "baremetal-insights",
-      "name": "Health Events",
-      "href": "/baremetal-insights/events"
-    }
-  },
-  {
     "type": "console.page/route",
     "properties": {
       "exact": true,
@@ -84,16 +74,6 @@
       "path": "/baremetal-insights/firmware",
       "component": {
         "$codeRef": "Firmware"
-      }
-    }
-  },
-  {
-    "type": "console.page/route",
-    "properties": {
-      "exact": true,
-      "path": "/baremetal-insights/events",
-      "component": {
-        "$codeRef": "HealthEvents"
       }
     }
   }

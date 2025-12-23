@@ -189,3 +189,14 @@ export interface UpdatesResponse {
 export interface EventsResponse {
   events: HealthEvent[];
 }
+
+export interface ScheduleUpdateRequest {
+  nodes: string[];
+  components?: string[];
+  mode: 'OnReboot';
+}
+
+export interface ScheduleUpdateResponse {
+  taskIds: string[];
+  message: string;
+}

@@ -104,45 +104,80 @@ export const NodeDetail: React.FC = () => {
           <BreadcrumbItem isActive>{node.name}</BreadcrumbItem>
         </Breadcrumb>
         <Title headingLevel="h1" style={{ marginTop: '1rem' }}>{node.name}</Title>
+      </PageSection>
 
-        {/* Overview Card */}
-        <Card style={{ marginTop: '1rem' }}>
-          <CardTitle>Overview</CardTitle>
-          <CardBody>
-            <DescriptionList isHorizontal>
-              <DescriptionListGroup>
-                <DescriptionListTerm>Manufacturer</DescriptionListTerm>
-                <DescriptionListDescription>{node.manufacturer}</DescriptionListDescription>
-              </DescriptionListGroup>
-              <DescriptionListGroup>
-                <DescriptionListTerm>Model</DescriptionListTerm>
-                <DescriptionListDescription>{node.model}</DescriptionListDescription>
-              </DescriptionListGroup>
-              <DescriptionListGroup>
-                <DescriptionListTerm>Service Tag</DescriptionListTerm>
-                <DescriptionListDescription>{node.serviceTag}</DescriptionListDescription>
-              </DescriptionListGroup>
-              <DescriptionListGroup>
-                <DescriptionListTerm>System Health</DescriptionListTerm>
-                <DescriptionListDescription><HealthStatusIcon status={node.health} showLabel /></DescriptionListDescription>
-              </DescriptionListGroup>
-              <DescriptionListGroup>
-                <DescriptionListTerm>Power State</DescriptionListTerm>
-                <DescriptionListDescription>{node.powerState}</DescriptionListDescription>
-              </DescriptionListGroup>
-              <DescriptionListGroup>
-                <DescriptionListTerm>Redfish IP</DescriptionListTerm>
-                <DescriptionListDescription>
-                  <a href={`https://${redfishIP}`} target="_blank" rel="noopener noreferrer">{redfishIP}</a>
-                </DescriptionListDescription>
-              </DescriptionListGroup>
-              <DescriptionListGroup>
-                <DescriptionListTerm>Last Scanned</DescriptionListTerm>
-                <DescriptionListDescription>{new Date(node.lastScanned).toLocaleString()}</DescriptionListDescription>
-              </DescriptionListGroup>
-            </DescriptionList>
-          </CardBody>
-        </Card>
+      {/* Overview and Power Cards - Side by Side */}
+      <PageSection>
+        <Grid hasGutter>
+          <GridItem span={7}>
+            <Card>
+              <CardTitle>Overview</CardTitle>
+              <CardBody>
+                <DescriptionList isHorizontal>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>Manufacturer</DescriptionListTerm>
+                    <DescriptionListDescription>{node.manufacturer}</DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>Model</DescriptionListTerm>
+                    <DescriptionListDescription>{node.model}</DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>Service Tag</DescriptionListTerm>
+                    <DescriptionListDescription>{node.serviceTag}</DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>System Health</DescriptionListTerm>
+                    <DescriptionListDescription><HealthStatusIcon status={node.health} showLabel /></DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>Power State</DescriptionListTerm>
+                    <DescriptionListDescription>{node.powerState}</DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>Redfish IP</DescriptionListTerm>
+                    <DescriptionListDescription>
+                      <a href={`https://${redfishIP}`} target="_blank" rel="noopener noreferrer">{redfishIP}</a>
+                    </DescriptionListDescription>
+                  </DescriptionListGroup>
+                  <DescriptionListGroup>
+                    <DescriptionListTerm>Last Scanned</DescriptionListTerm>
+                    <DescriptionListDescription>{new Date(node.lastScanned).toLocaleString()}</DescriptionListDescription>
+                  </DescriptionListGroup>
+                </DescriptionList>
+              </CardBody>
+            </Card>
+          </GridItem>
+          <GridItem span={5}>
+            <Card>
+              <CardTitle>Power</CardTitle>
+              <CardBody>
+                {node.powerSummary ? (
+                  <DescriptionList isHorizontal>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>Status</DescriptionListTerm>
+                      <DescriptionListDescription><HealthStatusIcon status={node.powerSummary.status} showLabel /></DescriptionListDescription>
+                    </DescriptionListGroup>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>Current Power</DescriptionListTerm>
+                      <DescriptionListDescription>{node.powerSummary.currentWatts} W</DescriptionListDescription>
+                    </DescriptionListGroup>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>Redundancy</DescriptionListTerm>
+                      <DescriptionListDescription>{node.powerSummary.redundancy}</DescriptionListDescription>
+                    </DescriptionListGroup>
+                    <DescriptionListGroup>
+                      <DescriptionListTerm>PSU Health</DescriptionListTerm>
+                      <DescriptionListDescription>{node.powerSummary.psusHealthy} / {node.powerSummary.psuCount} healthy</DescriptionListDescription>
+                    </DescriptionListGroup>
+                  </DescriptionList>
+                ) : (
+                  <p>No power data available</p>
+                )}
+              </CardBody>
+            </Card>
+          </GridItem>
+        </Grid>
       </PageSection>
 
       {/* Health Status Card */}
@@ -316,37 +351,6 @@ export const NodeDetail: React.FC = () => {
               </>
             ) : (
               <p>No storage data available</p>
-            )}
-          </CardBody>
-        </Card>
-      </PageSection>
-
-      {/* Power Card */}
-      <PageSection>
-        <Card>
-          <CardTitle>Power</CardTitle>
-          <CardBody>
-            {node.powerSummary ? (
-              <DescriptionList isHorizontal>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>Status</DescriptionListTerm>
-                  <DescriptionListDescription><HealthStatusIcon status={node.powerSummary.status} showLabel /></DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>Current Power</DescriptionListTerm>
-                  <DescriptionListDescription>{node.powerSummary.currentWatts} W</DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>Redundancy</DescriptionListTerm>
-                  <DescriptionListDescription>{node.powerSummary.redundancy}</DescriptionListDescription>
-                </DescriptionListGroup>
-                <DescriptionListGroup>
-                  <DescriptionListTerm>PSU Health</DescriptionListTerm>
-                  <DescriptionListDescription>{node.powerSummary.psusHealthy} / {node.powerSummary.psuCount} healthy</DescriptionListDescription>
-                </DescriptionListGroup>
-              </DescriptionList>
-            ) : (
-              <p>No power data available</p>
             )}
           </CardBody>
         </Card>

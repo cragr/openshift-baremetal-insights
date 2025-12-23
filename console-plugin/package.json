@@ -1,6 +1,7 @@
 {
   "name": "openshift-baremetal-insights-plugin",
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "private": true,
   "consolePlugin": {
     "name": "openshift-baremetal-insights-plugin",
@@ -11,8 +12,7 @@
       "Dashboard": "./src/pages/Dashboard",
       "Nodes": "./src/pages/Nodes",
       "NodeDetail": "./src/pages/NodeDetail",
-      "Firmware": "./src/pages/Firmware",
-      "HealthEvents": "./src/pages/HealthEvents"
+      "Firmware": "./src/pages/Firmware"
     },
     "dependencies": {
       "@console/pluginAPI": "*"
