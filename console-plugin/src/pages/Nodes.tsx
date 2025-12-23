@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState, useMemo } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import {
   Page,
   PageSection,
@@ -33,12 +33,23 @@ import { NamespaceDropdown } from '../components/NamespaceDropdown';
 
 export const Nodes: React.FC = () => {
   const history = useHistory();
+  const location = useLocation();
   const [nodes, setNodes] = useState<Node[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [namespace, setNamespace] = useState<string>('');
-  const [healthFilter, setHealthFilter] = useState<HealthStatus | 'All'>('All');
-  const [powerStateFilter, setPowerStateFilter] = useState<PowerState | 'All'>('All');
+
+  // Initialize filters from URL query params
+  const queryParams = new URLSearchParams(location.search);
+  const initialHealth = queryParams.get('health') as HealthStatus | null;
+  const initialPower = queryParams.get('power') as PowerState | null;
+
+  const [healthFilter, setHealthFilter] = useState<HealthStatus | 'All'>(
+    initialHealth && ['OK', 'Warning', 'Critical'].includes(initialHealth) ? initialHealth : 'All'
+  );
+  const [powerStateFilter, setPowerStateFilter] = useState<PowerState | 'All'>(
+    initialPower && ['On', 'Off', 'Unknown'].includes(initialPower) ? initialPower : 'All'
+  );
   const [isHealthFilterOpen, setIsHealthFilterOpen] = useState(false);
   const [isPowerStateFilterOpen, setIsPowerStateFilterOpen] = useState(false);
   const [activeSortIndex, setActiveSortIndex] = useState<number | null>(null);

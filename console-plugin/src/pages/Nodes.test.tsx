@@ -211,4 +211,50 @@ describe('Nodes', () => {
       expect(screen.getByText('Last Scanned')).toBeInTheDocument();
     });
   });
+
+  it('applies health filter from URL query param', async () => {
+    const nodesWithCritical = [
+      ...mockNodes,
+      {
+        name: 'worker-2',
+        namespace: 'default',
+        bmcAddress: '10.0.0.3',
+        model: 'PowerEdge R640',
+        manufacturer: 'Dell',
+        serviceTag: 'DEF456',
+        powerState: 'On',
+        lastScanned: '2025-12-21T00:00:00Z',
+        status: 'up-to-date',
+        firmwareCount: 5,
+        updatesAvailable: 0,
+        health: 'Critical',
+        thermalSummary: { inletTempC: 22, maxTempC: 45, fanCount: 8, fansHealthy: 8, status: 'OK' },
+        powerSummary: { currentWatts: 250, psuCount: 2, psusHealthy: 2, redundancy: 'Full', status: 'OK' },
+      },
+    ];
+    (api.getNodes as jest.Mock).mockResolvedValue(nodesWithCritical);
+
+    render(
+      <MemoryRouter initialEntries={['/baremetal-insights/nodes?health=Critical']}>
+        <Nodes />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByText('worker-2')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('worker-0')).not.toBeInTheDocument();
+    expect(screen.queryByText('worker-1')).not.toBeInTheDocument();
+  });
+
+  it('applies power filter from URL query param', async () => {
+    render(
+      <MemoryRouter initialEntries={['/baremetal-insights/nodes?power=Off']}>
+        <Nodes />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByText('worker-1')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('worker-0')).not.toBeInTheDocument();
+  });
 });
