@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 // Cache stores catalog entries with TTL

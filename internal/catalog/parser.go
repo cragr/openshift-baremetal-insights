@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 // XML structures for Dell catalog

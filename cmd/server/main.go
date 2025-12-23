@@ -14,16 +14,16 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/cragr/openshift-redfish-insights/internal/api"
-	"github.com/cragr/openshift-redfish-insights/internal/catalog"
-	"github.com/cragr/openshift-redfish-insights/internal/discovery"
-	"github.com/cragr/openshift-redfish-insights/internal/poller"
-	"github.com/cragr/openshift-redfish-insights/internal/redfish"
-	"github.com/cragr/openshift-redfish-insights/internal/store"
+	"github.com/cragr/openshift-baremetal-insights/internal/api"
+	"github.com/cragr/openshift-baremetal-insights/internal/catalog"
+	"github.com/cragr/openshift-baremetal-insights/internal/discovery"
+	"github.com/cragr/openshift-baremetal-insights/internal/poller"
+	"github.com/cragr/openshift-baremetal-insights/internal/redfish"
+	"github.com/cragr/openshift-baremetal-insights/internal/store"
 )
 
 func main() {
-	log.Println("Starting openshift-redfish-insights server...")
+	log.Println("Starting openshift-baremetal-insights server...")
 
 	// Get configuration from environment
 	addr := getEnv("LISTEN_ADDR", ":8080")

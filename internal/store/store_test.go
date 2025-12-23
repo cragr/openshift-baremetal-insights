@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 func TestStore_SetAndGetNode(t *testing.T) {

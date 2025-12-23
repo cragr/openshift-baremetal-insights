@@ -11,7 +11,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
-	"github.com/cragr/openshift-redfish-insights/internal/store"
+	"github.com/cragr/openshift-baremetal-insights/internal/store"
 )
 
 // Server is the REST API server

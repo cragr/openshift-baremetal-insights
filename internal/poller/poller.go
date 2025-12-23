@@ -6,12 +6,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cragr/openshift-redfish-insights/internal/catalog"
-	"github.com/cragr/openshift-redfish-insights/internal/discovery"
-	"github.com/cragr/openshift-redfish-insights/internal/metrics"
-	"github.com/cragr/openshift-redfish-insights/internal/models"
-	"github.com/cragr/openshift-redfish-insights/internal/redfish"
-	"github.com/cragr/openshift-redfish-insights/internal/store"
+	"github.com/cragr/openshift-baremetal-insights/internal/catalog"
+	"github.com/cragr/openshift-baremetal-insights/internal/discovery"
+	"github.com/cragr/openshift-baremetal-insights/internal/metrics"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/redfish"
+	"github.com/cragr/openshift-baremetal-insights/internal/store"
 )
 
 // Poller periodically polls iDRACs for firmware inventory

@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 // Service manages catalog fetching, parsing, and caching
