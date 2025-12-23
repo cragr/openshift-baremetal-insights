@@ -12,8 +12,7 @@
       "Dashboard": "./src/pages/Dashboard",
       "Nodes": "./src/pages/Nodes",
       "NodeDetail": "./src/pages/NodeDetail",
-      "Firmware": "./src/pages/Firmware",
-      "HealthEvents": "./src/pages/HealthEvents"
+      "Firmware": "./src/pages/Firmware"
     },
     "dependencies": {
       "@console/pluginAPI": "*"
