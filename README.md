@@ -1,5 +1,9 @@
 # OpenShift BareMetal Insights
 
+<p align="center">
+  <img src="images/img1.png" alt="BareMetal Insights Logo" width="350">
+</p>
+
 Kubernetes-native firmware visibility for Dell servers in OpenShift. Discovers bare metal nodes via BareMetalHost CRDs, queries iDRAC firmware inventory via Redfish API, and compares against Dell's firmware catalog to show available updates.
 
 ## Overview
