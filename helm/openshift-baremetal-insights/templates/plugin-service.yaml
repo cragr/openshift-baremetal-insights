@@ -1,0 +1,20 @@
+# helm/openshift-redfish-insights/templates/plugin-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "redfish-insights.fullname" . }}-plugin
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "redfish-insights.labels" . | nindent 4 }}
+    app.kubernetes.io/component: plugin
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: {{ include "redfish-insights.fullname" . }}-plugin-cert
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.plugin.service.port }}
+      targetPort: https
+      protocol: TCP
+      name: https
+  selector:
+    {{- include "redfish-insights.plugin.selectorLabels" . | nindent 4 }}

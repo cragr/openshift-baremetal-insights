@@ -1,0 +1,14 @@
+# helm/openshift-baremetal-insights/Chart.yaml
+apiVersion: v2
+name: openshift-baremetal-insights
+description: BareMetal Insights for OpenShift - Firmware visibility for Dell servers
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - openshift
+  - firmware
+  - dell
+  - redfish
+maintainers:
+  - name: Craig Robinson
