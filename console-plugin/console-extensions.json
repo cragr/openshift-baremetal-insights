@@ -10,10 +10,10 @@
   {
     "type": "console.navigation/href",
     "properties": {
-      "id": "baremetal-overview",
+      "id": "baremetal-dashboard",
       "perspective": "admin",
       "section": "baremetal-insights",
-      "name": "Overview",
+      "name": "Dashboard",
       "href": "/baremetal-insights"
     }
   },
@@ -43,7 +43,7 @@
       "exact": true,
       "path": "/baremetal-insights",
       "component": {
-        "$codeRef": "Overview"
+        "$codeRef": "Dashboard"
       }
     }
   },

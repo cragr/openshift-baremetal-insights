@@ -4,7 +4,7 @@
   "displayName": "BareMetal Insights",
   "description": "View firmware inventory and update status for bare metal nodes",
   "exposedModules": {
-    "Overview": "./pages/Overview",
+    "Dashboard": "./pages/Dashboard",
     "Nodes": "./pages/Nodes",
     "NodeDetail": "./pages/NodeDetail",
     "HealthEvents": "./pages/HealthEvents"
