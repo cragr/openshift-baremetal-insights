@@ -7,6 +7,7 @@
     "Dashboard": "./pages/Dashboard",
     "Nodes": "./pages/Nodes",
     "NodeDetail": "./pages/NodeDetail",
+    "Firmware": "./pages/Firmware",
     "HealthEvents": "./pages/HealthEvents"
   },
   "dependencies": {
