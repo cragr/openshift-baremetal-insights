@@ -1,5 +1,8 @@
 export type NodeStatus = 'up-to-date' | 'needs-update' | 'unknown' | 'auth-failed';
 export type HealthStatus = 'OK' | 'Warning' | 'Critical' | 'Unknown';
+export type PowerState = 'On' | 'Off' | 'Unknown';
+export type Severity = 'Critical' | 'Recommended' | 'Optional';
+export type TaskState = 'Pending' | 'Running' | 'Completed' | 'Exception';
 
 export interface FirmwareComponent {
   id: string;
@@ -8,6 +11,7 @@ export interface FirmwareComponent {
   availableVersion?: string;
   updateable: boolean;
   componentType: string;
+  severity?: Severity;
 }
 
 export interface HealthRollup {
@@ -42,6 +46,7 @@ export interface Node {
   model: string;
   manufacturer: string;
   serviceTag: string;
+  powerState: PowerState;
   lastScanned: string;
   status: NodeStatus;
   firmwareCount: number;
@@ -66,6 +71,79 @@ export interface UpdateSummary {
   availableVersion: string;
   affectedNodes: string[];
   nodeCount: number;
+}
+
+export interface Task {
+  node: string;
+  namespace: string;
+  taskId: string;
+  taskType: string;
+  taskState: TaskState;
+  percentComplete: number;
+  startTime: string;
+  message: string;
+}
+
+export interface HealthSummary {
+  healthy: number;
+  warning: number;
+  critical: number;
+}
+
+export interface PowerStateSummary {
+  on: number;
+  off: number;
+}
+
+export interface UpdatesSummary {
+  total: number;
+  critical: number;
+  recommended: number;
+  optional: number;
+  nodesWithUpdates: number;
+}
+
+export interface JobsSummary {
+  pending: number;
+  inProgress: number;
+  completed: number;
+}
+
+export interface DashboardStats {
+  totalNodes: number;
+  healthSummary: HealthSummary;
+  powerSummary: PowerStateSummary;
+  updatesSummary: UpdatesSummary;
+  jobsSummary: JobsSummary;
+  lastRefresh: string;
+  nextRefresh: string;
+}
+
+export interface FirmwareEntry {
+  node: string;
+  namespace: string;
+  firmware: FirmwareComponent;
+}
+
+export interface FirmwareSummary {
+  total: number;
+  updatesAvailable: number;
+  critical: number;
+  recommended: number;
+  optional: number;
+}
+
+export interface FirmwareResponse {
+  summary: FirmwareSummary;
+  firmware: FirmwareEntry[];
+}
+
+export interface TasksResponse {
+  tasks: Task[];
+}
+
+export interface NamespacesResponse {
+  namespaces: string[];
 }
 
 export interface NodesResponse {

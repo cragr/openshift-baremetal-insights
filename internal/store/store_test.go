@@ -53,3 +53,34 @@ func TestStore_DeleteNode(t *testing.T) {
 		t.Error("expected node to be deleted")
 	}
 }
+
+func TestStore_ListNodesByNamespace(t *testing.T) {
+	s := New()
+	s.SetNode(models.Node{Name: "node-1", Namespace: "ns-a"})
+	s.SetNode(models.Node{Name: "node-2", Namespace: "ns-b"})
+	s.SetNode(models.Node{Name: "node-3", Namespace: "ns-a"})
+
+	// All nodes
+	nodes := s.ListNodesByNamespace("")
+	if len(nodes) != 3 {
+		t.Errorf("ListNodesByNamespace('') = %d, want 3", len(nodes))
+	}
+
+	// Filtered
+	nodes = s.ListNodesByNamespace("ns-a")
+	if len(nodes) != 2 {
+		t.Errorf("ListNodesByNamespace('ns-a') = %d, want 2", len(nodes))
+	}
+}
+
+func TestStore_GetNamespaces(t *testing.T) {
+	s := New()
+	s.SetNode(models.Node{Name: "node-1", Namespace: "ns-a"})
+	s.SetNode(models.Node{Name: "node-2", Namespace: "ns-b"})
+	s.SetNode(models.Node{Name: "node-3", Namespace: "ns-a"})
+
+	namespaces := s.GetNamespaces()
+	if len(namespaces) != 2 {
+		t.Errorf("GetNamespaces() = %d, want 2", len(namespaces))
+	}
+}

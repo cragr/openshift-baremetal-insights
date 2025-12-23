@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useHistory } from 'react-router-dom';
 import {
   Page,
@@ -15,6 +15,7 @@ import {
   SelectList,
   MenuToggle,
   MenuToggleElement,
+  Button,
 } from '@patternfly/react-core';
 import {
   Table,
@@ -25,24 +26,29 @@ import {
   Td,
   ThProps,
 } from '@patternfly/react-table';
-import { Node, HealthStatus } from '../types';
+import { Node, HealthStatus, PowerState } from '../types';
 import { getNodes } from '../services/api';
 import { HealthStatusIcon } from '../components/HealthStatusIcon';
+import { NamespaceDropdown } from '../components/NamespaceDropdown';
 
 export const Nodes: React.FC = () => {
   const history = useHistory();
   const [nodes, setNodes] = useState<Node[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [namespace, setNamespace] = useState<string>('');
   const [healthFilter, setHealthFilter] = useState<HealthStatus | 'All'>('All');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [powerStateFilter, setPowerStateFilter] = useState<PowerState | 'All'>('All');
+  const [isHealthFilterOpen, setIsHealthFilterOpen] = useState(false);
+  const [isPowerStateFilterOpen, setIsPowerStateFilterOpen] = useState(false);
   const [activeSortIndex, setActiveSortIndex] = useState<number | null>(null);
   const [activeSortDirection, setActiveSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getNodes();
+        setLoading(true);
+        const data = await getNodes(namespace || undefined);
         setNodes(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch nodes');
@@ -51,14 +57,14 @@ export const Nodes: React.FC = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [namespace]);
 
   const getSortableRowValues = (node: Node): (string | number)[] => [
     node.name,
+    node.serviceTag,
     node.model,
     node.health,
-    node.thermalSummary?.inletTempC ?? 0,
-    node.powerSummary?.currentWatts ?? 0,
+    node.powerState,
     node.lastScanned,
   ];
 
@@ -74,23 +80,29 @@ export const Nodes: React.FC = () => {
     columnIndex,
   });
 
-  let filteredNodes = nodes;
-  if (healthFilter !== 'All') {
-    filteredNodes = nodes.filter((n) => n.health === healthFilter);
-  }
+  const filteredNodes = useMemo(() => {
+    let result = nodes;
+    if (healthFilter !== 'All') {
+      result = result.filter((n) => n.health === healthFilter);
+    }
+    if (powerStateFilter !== 'All') {
+      result = result.filter((n) => n.powerState === powerStateFilter);
+    }
 
-  if (activeSortIndex !== null) {
-    filteredNodes = [...filteredNodes].sort((a, b) => {
-      const aValue = getSortableRowValues(a)[activeSortIndex];
-      const bValue = getSortableRowValues(b)[activeSortIndex];
-      if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return activeSortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-      }
-      const aStr = String(aValue);
-      const bStr = String(bValue);
-      return activeSortDirection === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
-    });
-  }
+    if (activeSortIndex !== null) {
+      result = [...result].sort((a, b) => {
+        const aValue = getSortableRowValues(a)[activeSortIndex];
+        const bValue = getSortableRowValues(b)[activeSortIndex];
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return activeSortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+        }
+        const aStr = String(aValue);
+        const bStr = String(bValue);
+        return activeSortDirection === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
+      });
+    }
+    return result;
+  }, [nodes, healthFilter, powerStateFilter, activeSortIndex, activeSortDirection]);
 
   if (loading) {
     return (
@@ -123,16 +135,19 @@ export const Nodes: React.FC = () => {
         <Toolbar>
           <ToolbarContent>
             <ToolbarItem>
+              <NamespaceDropdown selected={namespace} onSelect={setNamespace} />
+            </ToolbarItem>
+            <ToolbarItem>
               <Select
-                isOpen={isFilterOpen}
+                isOpen={isHealthFilterOpen}
                 selected={healthFilter}
                 onSelect={(_e, value) => {
                   setHealthFilter(value as HealthStatus | 'All');
-                  setIsFilterOpen(false);
+                  setIsHealthFilterOpen(false);
                 }}
-                onOpenChange={setIsFilterOpen}
+                onOpenChange={setIsHealthFilterOpen}
                 toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
-                  <MenuToggle ref={toggleRef} onClick={() => setIsFilterOpen(!isFilterOpen)} isExpanded={isFilterOpen}>
+                  <MenuToggle ref={toggleRef} onClick={() => setIsHealthFilterOpen(!isHealthFilterOpen)} isExpanded={isHealthFilterOpen}>
                     Health: {healthFilter}
                   </MenuToggle>
                 )}
@@ -145,17 +160,40 @@ export const Nodes: React.FC = () => {
                 </SelectList>
               </Select>
             </ToolbarItem>
+            <ToolbarItem>
+              <Select
+                isOpen={isPowerStateFilterOpen}
+                selected={powerStateFilter}
+                onSelect={(_e, value) => {
+                  setPowerStateFilter(value as PowerState | 'All');
+                  setIsPowerStateFilterOpen(false);
+                }}
+                onOpenChange={setIsPowerStateFilterOpen}
+                toggle={(toggleRef: React.Ref<MenuToggleElement>) => (
+                  <MenuToggle ref={toggleRef} onClick={() => setIsPowerStateFilterOpen(!isPowerStateFilterOpen)} isExpanded={isPowerStateFilterOpen}>
+                    Power State: {powerStateFilter}
+                  </MenuToggle>
+                )}
+              >
+                <SelectList>
+                  <SelectOption value="All">All</SelectOption>
+                  <SelectOption value="On">On</SelectOption>
+                  <SelectOption value="Off">Off</SelectOption>
+                  <SelectOption value="Unknown">Unknown</SelectOption>
+                </SelectList>
+              </Select>
+            </ToolbarItem>
           </ToolbarContent>
         </Toolbar>
         <Table aria-label="Nodes table">
           <Thead>
             <Tr>
               <Th sort={getSortParams(0)}>Name</Th>
-              <Th sort={getSortParams(1)}>Model</Th>
-              <Th sort={getSortParams(2)}>Health</Th>
-              <Th sort={getSortParams(3)}>Temp (°C)</Th>
-              <Th sort={getSortParams(4)}>Power (W)</Th>
-              <Th sort={getSortParams(5)}>Last Seen</Th>
+              <Th sort={getSortParams(1)}>Service Tag</Th>
+              <Th sort={getSortParams(2)}>Model</Th>
+              <Th sort={getSortParams(3)}>Health</Th>
+              <Th sort={getSortParams(4)}>Power State</Th>
+              <Th sort={getSortParams(5)}>Last Scanned</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -165,14 +203,25 @@ export const Nodes: React.FC = () => {
                 isClickable
                 onRowClick={() => history.push(`/baremetal-insights/nodes/${node.name}`)}
               >
-                <Td dataLabel="Name">{node.name}</Td>
+                <Td dataLabel="Name">
+                  <Button
+                    variant="link"
+                    isInline
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      history.push(`/k8s/ns/${node.namespace}/metal3.io~v1alpha1~BareMetalHost/${node.name}`);
+                    }}
+                  >
+                    {node.name}
+                  </Button>
+                </Td>
+                <Td dataLabel="Service Tag">{node.serviceTag}</Td>
                 <Td dataLabel="Model">{node.model}</Td>
                 <Td dataLabel="Health">
                   <HealthStatusIcon status={node.health} showLabel />
                 </Td>
-                <Td dataLabel="Temp">{node.thermalSummary?.inletTempC ?? '-'}</Td>
-                <Td dataLabel="Power">{node.powerSummary?.currentWatts ?? '-'}</Td>
-                <Td dataLabel="Last Seen">{new Date(node.lastScanned).toLocaleString()}</Td>
+                <Td dataLabel="Power State">{node.powerState}</Td>
+                <Td dataLabel="Last Scanned">{new Date(node.lastScanned).toLocaleString()}</Td>
               </Tr>
             ))}
           </Tbody>

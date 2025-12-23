@@ -12,6 +12,24 @@ const (
 	StatusAuthFailed  NodeStatus = "auth-failed"
 )
 
+// PowerState represents the power state of a node
+type PowerState string
+
+const (
+	PowerOn      PowerState = "On"
+	PowerOff     PowerState = "Off"
+	PowerUnknown PowerState = "Unknown"
+)
+
+// Severity represents update criticality
+type Severity string
+
+const (
+	SeverityCritical    Severity = "Critical"
+	SeverityRecommended Severity = "Recommended"
+	SeverityOptional    Severity = "Optional"
+)
+
 // Node represents a discovered bare metal server
 type Node struct {
 	Name             string              `json:"name"`
@@ -20,6 +38,7 @@ type Node struct {
 	Model            string              `json:"model"`
 	Manufacturer     string              `json:"manufacturer"`
 	ServiceTag       string              `json:"serviceTag"`
+	PowerState       PowerState          `json:"powerState"`
 	LastScanned      time.Time           `json:"lastScanned"`
 	Status           NodeStatus          `json:"status"`
 	FirmwareCount    int                 `json:"firmwareCount"`
@@ -34,12 +53,13 @@ type Node struct {
 
 // FirmwareComponent represents a single firmware component on a server
 type FirmwareComponent struct {
-	ID               string `json:"id"`
-	Name             string `json:"name"`
-	CurrentVersion   string `json:"currentVersion"`
-	AvailableVersion string `json:"availableVersion,omitempty"`
-	Updateable       bool   `json:"updateable"`
-	ComponentType    string `json:"componentType"`
+	ID               string   `json:"id"`
+	Name             string   `json:"name"`
+	CurrentVersion   string   `json:"currentVersion"`
+	AvailableVersion string   `json:"availableVersion,omitempty"`
+	Updateable       bool     `json:"updateable"`
+	ComponentType    string   `json:"componentType"`
+	Severity         Severity `json:"severity,omitempty"`
 }
 
 // NeedsUpdate returns true if an update is available
@@ -162,4 +182,71 @@ type HealthEvent struct {
 	Severity  HealthStatus `json:"severity"`
 	Message   string       `json:"message"`
 	NodeName  string       `json:"nodeName,omitempty"`
+}
+
+// TaskState represents the state of a Redfish task
+type TaskState string
+
+const (
+	TaskPending   TaskState = "Pending"
+	TaskRunning   TaskState = "Running"
+	TaskCompleted TaskState = "Completed"
+	TaskFailed    TaskState = "Exception"
+)
+
+// Task represents a Redfish Task Service job
+type Task struct {
+	Node            string    `json:"node"`
+	Namespace       string    `json:"namespace"`
+	TaskID          string    `json:"taskId"`
+	TaskType        string    `json:"taskType"`
+	TaskState       TaskState `json:"taskState"`
+	PercentComplete int       `json:"percentComplete"`
+	StartTime       time.Time `json:"startTime"`
+	Message         string    `json:"message"`
+}
+
+// IsComplete returns true if the task is in a terminal state
+func (t *Task) IsComplete() bool {
+	return t.TaskState == TaskCompleted || t.TaskState == TaskFailed
+}
+
+// HealthSummary counts nodes by health status
+type HealthSummary struct {
+	Healthy  int `json:"healthy"`
+	Warning  int `json:"warning"`
+	Critical int `json:"critical"`
+}
+
+// PowerStateSummary counts nodes by power state
+type PowerStateSummary struct {
+	On  int `json:"on"`
+	Off int `json:"off"`
+}
+
+// UpdatesSummary counts available firmware updates
+type UpdatesSummary struct {
+	Total            int `json:"total"`
+	Critical         int `json:"critical"`
+	Recommended      int `json:"recommended"`
+	Optional         int `json:"optional"`
+	NodesWithUpdates int `json:"nodesWithUpdates"`
+}
+
+// JobsSummary counts Redfish tasks by state
+type JobsSummary struct {
+	Pending    int `json:"pending"`
+	InProgress int `json:"inProgress"`
+	Completed  int `json:"completed"`
+}
+
+// DashboardStats aggregates all dashboard statistics
+type DashboardStats struct {
+	TotalNodes     int               `json:"totalNodes"`
+	HealthSummary  HealthSummary     `json:"healthSummary"`
+	PowerSummary   PowerStateSummary `json:"powerSummary"`
+	UpdatesSummary UpdatesSummary    `json:"updatesSummary"`
+	JobsSummary    JobsSummary       `json:"jobsSummary"`
+	LastRefresh    time.Time         `json:"lastRefresh"`
+	NextRefresh    time.Time         `json:"nextRefresh"`
 }

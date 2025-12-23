@@ -240,3 +240,136 @@ func TestListEventsHandler(t *testing.T) {
 		t.Errorf("expected 1 event, got %d", len(response.Events))
 	}
 }
+
+func TestServer_Dashboard(t *testing.T) {
+	s := store.New()
+	s.SetNode(models.Node{
+		Name:       "node-1",
+		Namespace:  "test-ns",
+		Health:     models.HealthOK,
+		PowerState: models.PowerOn,
+	})
+
+	srv := NewServer(s, ":8080", "", "")
+
+	req := httptest.NewRequest("GET", "/api/v1/dashboard", nil)
+	w := httptest.NewRecorder()
+	srv.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+
+	var resp models.DashboardStats
+	json.Unmarshal(w.Body.Bytes(), &resp)
+
+	if resp.TotalNodes != 1 {
+		t.Errorf("totalNodes = %d, want 1", resp.TotalNodes)
+	}
+}
+
+func TestServer_ListNamespaces(t *testing.T) {
+	s := store.New()
+	s.SetNode(models.Node{Name: "node-1", Namespace: "ns-a"})
+	s.SetNode(models.Node{Name: "node-2", Namespace: "ns-b"})
+
+	srv := NewServer(s, ":8080", "", "")
+
+	req := httptest.NewRequest("GET", "/api/v1/namespaces", nil)
+	w := httptest.NewRecorder()
+	srv.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+
+	var resp map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &resp)
+	namespaces := resp["namespaces"].([]interface{})
+	if len(namespaces) != 2 {
+		t.Errorf("namespaces count = %d, want 2", len(namespaces))
+	}
+}
+
+func TestServer_ListTasks(t *testing.T) {
+	s := store.New()
+	ts := store.NewTaskStore()
+	ts.SetTask(models.Task{
+		TaskID:    "JID_1",
+		Node:      "node-1",
+		TaskState: models.TaskRunning,
+	})
+
+	srv := NewServerWithTasks(s, nil, ts, ":8080", "", "")
+
+	req := httptest.NewRequest("GET", "/api/v1/tasks", nil)
+	w := httptest.NewRecorder()
+	srv.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+
+	var resp map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &resp)
+	tasks := resp["tasks"].([]interface{})
+	if len(tasks) != 1 {
+		t.Errorf("tasks count = %d, want 1", len(tasks))
+	}
+}
+
+func TestServer_ListNodes_NamespaceFilter(t *testing.T) {
+	s := store.New()
+	s.SetNode(models.Node{Name: "node-1", Namespace: "ns-a"})
+	s.SetNode(models.Node{Name: "node-2", Namespace: "ns-b"})
+
+	srv := NewServer(s, ":8080", "", "")
+
+	req := httptest.NewRequest("GET", "/api/v1/nodes?namespace=ns-a", nil)
+	w := httptest.NewRecorder()
+	srv.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+
+	var resp map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &resp)
+	nodes := resp["nodes"].([]interface{})
+	if len(nodes) != 1 {
+		t.Errorf("nodes count = %d, want 1", len(nodes))
+	}
+}
+
+func TestServer_ListFirmware(t *testing.T) {
+	s := store.New()
+	s.SetNode(models.Node{
+		Name:      "node-1",
+		Namespace: "ns-a",
+		Firmware: []models.FirmwareComponent{
+			{ID: "bios", Name: "BIOS", CurrentVersion: "1.0", AvailableVersion: "2.0", Severity: models.SeverityCritical},
+			{ID: "idrac", Name: "iDRAC", CurrentVersion: "2.0"},
+		},
+	})
+
+	srv := NewServer(s, ":8080", "", "")
+
+	req := httptest.NewRequest("GET", "/api/v1/firmware", nil)
+	w := httptest.NewRecorder()
+	srv.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+
+	var resp map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &resp)
+
+	summary := resp["summary"].(map[string]interface{})
+	if summary["total"].(float64) != 2 {
+		t.Errorf("summary.total = %v, want 2", summary["total"])
+	}
+	if summary["updatesAvailable"].(float64) != 1 {
+		t.Errorf("summary.updatesAvailable = %v, want 1", summary["updatesAvailable"])
+	}
+}
