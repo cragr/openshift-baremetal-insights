@@ -200,3 +200,43 @@ type Task struct {
 func (t *Task) IsComplete() bool {
 	return t.TaskState == TaskCompleted || t.TaskState == TaskFailed
 }
+
+// HealthSummary counts nodes by health status
+type HealthSummary struct {
+	Healthy  int `json:"healthy"`
+	Warning  int `json:"warning"`
+	Critical int `json:"critical"`
+}
+
+// PowerStateSummary counts nodes by power state
+type PowerStateSummary struct {
+	On  int `json:"on"`
+	Off int `json:"off"`
+}
+
+// UpdatesSummary counts available firmware updates
+type UpdatesSummary struct {
+	Total            int `json:"total"`
+	Critical         int `json:"critical"`
+	Recommended      int `json:"recommended"`
+	Optional         int `json:"optional"`
+	NodesWithUpdates int `json:"nodesWithUpdates"`
+}
+
+// JobsSummary counts Redfish tasks by state
+type JobsSummary struct {
+	Pending    int `json:"pending"`
+	InProgress int `json:"inProgress"`
+	Completed  int `json:"completed"`
+}
+
+// DashboardStats aggregates all dashboard statistics
+type DashboardStats struct {
+	TotalNodes     int               `json:"totalNodes"`
+	HealthSummary  HealthSummary     `json:"healthSummary"`
+	PowerSummary   PowerStateSummary `json:"powerSummary"`
+	UpdatesSummary UpdatesSummary    `json:"updatesSummary"`
+	JobsSummary    JobsSummary       `json:"jobsSummary"`
+	LastRefresh    time.Time         `json:"lastRefresh"`
+	NextRefresh    time.Time         `json:"nextRefresh"`
+}

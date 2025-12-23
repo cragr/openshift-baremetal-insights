@@ -119,3 +119,33 @@ func TestTask_IsComplete(t *testing.T) {
 		}
 	}
 }
+
+func TestDashboardStats_Struct(t *testing.T) {
+	stats := DashboardStats{
+		TotalNodes: 10,
+		HealthSummary: HealthSummary{
+			Healthy:  8,
+			Warning:  1,
+			Critical: 1,
+		},
+		PowerSummary: PowerStateSummary{
+			On:  9,
+			Off: 1,
+		},
+		UpdatesSummary: UpdatesSummary{
+			Total:            5,
+			Critical:         1,
+			Recommended:      2,
+			Optional:         2,
+			NodesWithUpdates: 3,
+		},
+		JobsSummary: JobsSummary{
+			Pending:    1,
+			InProgress: 0,
+			Completed:  5,
+		},
+	}
+	if stats.TotalNodes != 10 {
+		t.Errorf("TotalNodes = %d, want 10", stats.TotalNodes)
+	}
+}
