@@ -1,24 +1,23 @@
-# OpenShift BareMetal Insights
+# BareMetal Insights Plugin for OpenShift
 
 <p align="center">
   <img src="images/img1.png" alt="BareMetal Insights Logo" width="350">
 </p>
 
-Kubernetes-native firmware visibility for Dell servers in OpenShift. Discovers bare metal nodes via BareMetalHost CRDs, queries iDRAC firmware inventory via Redfish API, and compares against Dell's firmware catalog to show available updates.
+Kubernetes-native visibility for Redfish compatible servers in OpenShift. Discovers bare metal nodes via BareMetalHost CRDs, queries node inventory via Redfish API.
 
 ## Overview
 
-- **Read-only visibility** - No automated firmware updates (V1 scope)
-- **Dell servers only** - Supports iDRAC 8 and iDRAC 9
-- **OpenShift Console integration** - Native UI under Compute section
+- **OpenShift Console integration** - Native UI adds "BareMetal Insights" section
+- **Dell Firmware Support** - Supports iDRAC 8 and iDRAC 9 initially
 
 ## Prerequisites
 
-- OpenShift 4.14 or later
+- OpenShift 4.19 or later
 - Bare metal nodes with BareMetalHost CRDs (Metal3/IPI deployment)
-- Dell PowerEdge servers with iDRAC
-- Network access from cluster to iDRAC management IPs
-- Network access to downloads.dell.com (for firmware catalog)
+- Redfish compatible servers
+- Network access from cluster to Redfish management IPs
+- Network access to downloads.dell.com (for Dell firmware catalog)
 
 ## Quick Start
 
