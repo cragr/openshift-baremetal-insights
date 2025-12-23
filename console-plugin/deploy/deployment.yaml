@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redfish-insights-plugin
-  namespace: redfish-insights
+  name: baremetal-insights-plugin
+  namespace: baremetal-insights
   labels:
-    app: redfish-insights-plugin
+    app: baremetal-insights-plugin
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: redfish-insights-plugin
+      app: baremetal-insights-plugin
   template:
     metadata:
       labels:
-        app: redfish-insights-plugin
+        app: baremetal-insights-plugin
     spec:
       containers:
         - name: plugin
-          image: redfish-insights-plugin:latest
+          image: baremetal-insights-plugin:latest
           ports:
             - containerPort: 9443
               protocol: TCP
@@ -35,4 +35,4 @@ spec:
       volumes:
         - name: serving-cert
           secret:
-            secretName: redfish-insights-plugin-cert
+            secretName: baremetal-insights-plugin-cert

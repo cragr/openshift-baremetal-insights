@@ -1,4 +1,4 @@
-# OpenShift Redfish Insights
+# OpenShift BareMetal Insights
 
 Kubernetes-native firmware visibility for Dell servers in OpenShift. Discovers bare metal nodes via BareMetalHost CRDs, queries iDRAC firmware inventory via Redfish API, and compares against Dell's firmware catalog to show available updates.
 
@@ -22,13 +22,13 @@ Kubernetes-native firmware visibility for Dell servers in OpenShift. Discovers b
 
 ```bash
 # Install from local chart
-helm upgrade --install redfish-insights helm/openshift-redfish-insights/ \
-  --namespace redfish-insights \
+helm upgrade --install baremetal-insights helm/openshift-baremetal-insights/ \
+  --namespace baremetal-insights \
   --create-namespace
 
 # Enable the console plugin
 oc patch consoles.operator.openshift.io cluster \
-  --patch '{"spec":{"plugins":["redfish-insights-plugin"]}}' \
+  --patch '{"spec":{"plugins":["baremetal-insights-plugin"]}}' \
   --type=merge
 ```
 
@@ -36,7 +36,7 @@ oc patch consoles.operator.openshift.io cluster \
 
 ```bash
 # Check pods are running
-oc get pods -n redfish-insights
+oc get pods -n baremetal-insights
 
 # Check console plugin is registered
 oc get consoleplugins
@@ -46,7 +46,7 @@ oc get consoleplugins
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `namespace.name` | `redfish-insights` | Namespace for deployment |
+| `namespace.name` | `baremetal-insights` | Namespace for deployment |
 | `backend.config.pollInterval` | `30m` | How often to scan iDRACs |
 | `backend.config.catalogRefresh` | `24h` | How often to fetch Dell catalog |
 | `backend.image.tag` | `latest` | Backend image tag |
@@ -56,7 +56,7 @@ oc get consoleplugins
 ### Example: Custom polling interval
 
 ```bash
-helm upgrade --install redfish-insights helm/openshift-redfish-insights/ \
+helm upgrade --install baremetal-insights helm/openshift-baremetal-insights/ \
   --set backend.config.pollInterval=15m \
   --set metrics.enabled=true
 ```
@@ -143,12 +143,12 @@ cd console-plugin && npm run dev
 
 1. Check ConsolePlugin is registered: `oc get consoleplugins`
 2. Verify plugin is enabled: `oc get consoles.operator.openshift.io cluster -o yaml`
-3. Check plugin pod logs: `oc logs -n redfish-insights -l app.kubernetes.io/component=plugin`
+3. Check plugin pod logs: `oc logs -n baremetal-insights -l app.kubernetes.io/component=plugin`
 
 ### No nodes discovered
 
 1. Verify BareMetalHost CRDs exist: `oc get baremetalhosts -A`
-2. Check backend logs: `oc logs -n redfish-insights -l app.kubernetes.io/component=backend`
+2. Check backend logs: `oc logs -n baremetal-insights -l app.kubernetes.io/component=backend`
 3. Ensure backend has RBAC to read BareMetalHosts
 
 ### iDRAC connection failures

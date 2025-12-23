@@ -1,0 +1,38 @@
+# helm/openshift-baremetal-insights/templates/plugin-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "baremetal-insights.fullname" . }}-plugin
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
+    app.kubernetes.io/component: plugin
+spec:
+  replicas: {{ .Values.plugin.replicas }}
+  selector:
+    matchLabels:
+      {{- include "baremetal-insights.plugin.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "baremetal-insights.plugin.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: plugin
+          image: "{{ .Values.plugin.image.repository }}:{{ .Values.plugin.image.tag }}"
+          imagePullPolicy: {{ .Values.plugin.image.pullPolicy }}
+          ports:
+            - name: https
+              containerPort: 9443
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.plugin.resources | nindent 12 }}
+          volumeMounts:
+            - name: plugin-serving-cert
+              mountPath: /var/serving-cert
+              readOnly: true
+      volumes:
+        - name: plugin-serving-cert
+          secret:
+            secretName: {{ include "baremetal-insights.fullname" . }}-plugin-cert
+            defaultMode: 420

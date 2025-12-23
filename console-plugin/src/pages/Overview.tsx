@@ -152,7 +152,7 @@ export const Overview: React.FC = () => {
                             <HealthStatusIcon status={event.severity} />
                           </SplitItem>
                           <SplitItem isFilled>
-                            <Link to={`/redfish-insights/nodes/${event.nodeName}`}>{event.nodeName}</Link>
+                            <Link to={`/baremetal-insights/nodes/${event.nodeName}`}>{event.nodeName}</Link>
                             : {event.message}
                           </SplitItem>
                           <SplitItem>
@@ -164,7 +164,7 @@ export const Overview: React.FC = () => {
                   </Stack>
                 )}
                 <p style={{ marginTop: '1rem' }}>
-                  <Link to="/redfish-insights/events">View All Events</Link>
+                  <Link to="/baremetal-insights/events">View All Events</Link>
                 </p>
               </CardBody>
             </Card>
@@ -181,7 +181,7 @@ export const Overview: React.FC = () => {
                       <StackItem key={node.name}>
                         <Split>
                           <SplitItem isFilled>
-                            <Link to={`/redfish-insights/nodes/${node.name}`}>{node.name}</Link>
+                            <Link to={`/baremetal-insights/nodes/${node.name}`}>{node.name}</Link>
                           </SplitItem>
                           <SplitItem>
                             <HealthStatusIcon status={node.health} showLabel />
@@ -192,7 +192,7 @@ export const Overview: React.FC = () => {
                   </Stack>
                 )}
                 <p style={{ marginTop: '1rem' }}>
-                  <Link to="/redfish-insights/nodes">View All Nodes</Link>
+                  <Link to="/baremetal-insights/nodes">View All Nodes</Link>
                 </p>
               </CardBody>
             </Card>

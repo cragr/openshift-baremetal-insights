@@ -2,7 +2,7 @@
 
 ## Overview
 
-Package the OpenShift Redfish Insights application for production deployment with Helm chart, container images, minimal Prometheus metrics, and documentation.
+Package the OpenShift BareMetal Insights application for production deployment with Helm chart, container images, minimal Prometheus metrics, and documentation.
 
 ## Decisions
 
@@ -11,13 +11,13 @@ Package the OpenShift Redfish Insights application for production deployment wit
 | Container Registry | quay.io/cragr/ | OpenShift ecosystem standard, free public images |
 | Architecture | AMD64 only | Covers 95%+ deployments, simpler builds |
 | Metrics Scope | Minimal (scan_total) | Start simple, add more later |
-| Default Namespace | redfish-insights | Dedicated namespace, clear ownership |
+| Default Namespace | baremetal-insights | Dedicated namespace, clear ownership |
 | Documentation | Single README | Lean docs, everything in one place |
 
 ## Helm Chart Structure
 
 ```
-helm/openshift-redfish-insights/
+helm/openshift-baremetal-insights/
   Chart.yaml
   values.yaml
   templates/
@@ -40,11 +40,11 @@ helm/openshift-redfish-insights/
 ```yaml
 namespace:
   create: true
-  name: openshift-redfish-insights
+  name: openshift-baremetal-insights
 
 backend:
   image:
-    repository: quay.io/cragr/openshift-redfish-insights
+    repository: quay.io/cragr/openshift-baremetal-insights
     tag: latest
     pullPolicy: IfNotPresent
   replicas: 1
@@ -63,7 +63,7 @@ backend:
 
 plugin:
   image:
-    repository: quay.io/cragr/redfish-insights-plugin
+    repository: quay.io/cragr/baremetal-insights-plugin
     tag: latest
     pullPolicy: IfNotPresent
   replicas: 1
@@ -84,8 +84,8 @@ metrics:
 ## Container Images
 
 **Repositories:**
-- `quay.io/cragr/openshift-redfish-insights` - Go backend
-- `quay.io/cragr/redfish-insights-plugin` - Console plugin (nginx)
+- `quay.io/cragr/openshift-baremetal-insights` - Go backend
+- `quay.io/cragr/baremetal-insights-plugin` - Console plugin (nginx)
 
 **Tagging:**
 - `latest` - Development/testing
@@ -97,8 +97,8 @@ metrics:
 
 ```makefile
 REGISTRY ?= quay.io/cragr
-BACKEND_IMAGE ?= $(REGISTRY)/openshift-redfish-insights
-PLUGIN_IMAGE ?= $(REGISTRY)/redfish-insights-plugin
+BACKEND_IMAGE ?= $(REGISTRY)/openshift-baremetal-insights
+PLUGIN_IMAGE ?= $(REGISTRY)/baremetal-insights-plugin
 VERSION ?= $(shell git describe --tags --always --dirty)
 
 image-backend    # Build backend image
@@ -141,7 +141,7 @@ Single README.md covering:
 
 ## Deliverables
 
-1. `helm/openshift-redfish-insights/` - Complete Helm chart (12 templates)
+1. `helm/openshift-baremetal-insights/` - Complete Helm chart (12 templates)
 2. Updated `Makefile` - Image and Helm targets
 3. `internal/metrics/metrics.go` - Prometheus metrics package
 4. Backend `/metrics` endpoint

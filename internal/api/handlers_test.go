@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
-	"github.com/cragr/openshift-redfish-insights/internal/store"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/store"
 )
 
 func TestListNodesHandler(t *testing.T) {

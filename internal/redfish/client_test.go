@@ -5,7 +5,7 @@ import (
 
 	"github.com/stmcginnis/gofish/common"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 func TestNewClient(t *testing.T) {

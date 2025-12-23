@@ -163,7 +163,7 @@ export const Nodes: React.FC = () => {
               <Tr
                 key={node.name}
                 isClickable
-                onRowClick={() => history.push(`/redfish-insights/nodes/${node.name}`)}
+                onRowClick={() => history.push(`/baremetal-insights/nodes/${node.name}`)}
               >
                 <Td dataLabel="Name">{node.name}</Td>
                 <Td dataLabel="Model">{node.model}</Td>

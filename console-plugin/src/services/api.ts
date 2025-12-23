@@ -11,7 +11,7 @@ import {
   EventsResponse,
 } from '../types';
 
-const API_BASE = '/api/proxy/plugin/redfish-insights-plugin/redfish-insights';
+const API_BASE = '/api/proxy/plugin/openshift-baremetal-insights-plugin/baremetal-insights';
 
 export const getNodes = async (): Promise<Node[]> => {
   const response = (await consoleFetchJSON(`${API_BASE}/api/v1/nodes`)) as NodesResponse;

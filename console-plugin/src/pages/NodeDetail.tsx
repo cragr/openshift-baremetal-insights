@@ -30,9 +30,9 @@ import { EventsTab } from './tabs/EventsTab';
 
 export const NodeDetail: React.FC = () => {
   const location = useLocation();
-  // Extract node name from URL path: /redfish-insights/nodes/:name
+  // Extract node name from URL path: /baremetal-insights/nodes/:name
   const name = useMemo(() => {
-    const match = location.pathname.match(/\/redfish-insights\/nodes\/([^/]+)/);
+    const match = location.pathname.match(/\/baremetal-insights\/nodes\/([^/]+)/);
     return match ? decodeURIComponent(match[1]) : undefined;
   }, [location.pathname]);
   const [node, setNode] = useState<Node | null>(null);
@@ -95,8 +95,8 @@ export const NodeDetail: React.FC = () => {
     <Page>
       <PageSection variant="light">
         <Breadcrumb>
-          <BreadcrumbItem><Link to="/redfish-insights">Overview</Link></BreadcrumbItem>
-          <BreadcrumbItem><Link to="/redfish-insights/nodes">Nodes</Link></BreadcrumbItem>
+          <BreadcrumbItem><Link to="/baremetal-insights">Overview</Link></BreadcrumbItem>
+          <BreadcrumbItem><Link to="/baremetal-insights/nodes">Nodes</Link></BreadcrumbItem>
           <BreadcrumbItem isActive>{node.name}</BreadcrumbItem>
         </Breadcrumb>
         <Title headingLevel="h1" style={{ marginTop: '1rem' }}>{node.name}</Title>

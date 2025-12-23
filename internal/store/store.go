@@ -3,7 +3,7 @@ package store
 import (
 	"sync"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 // Store provides thread-safe in-memory storage for node firmware data

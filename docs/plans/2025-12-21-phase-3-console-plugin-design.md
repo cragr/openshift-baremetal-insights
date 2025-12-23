@@ -146,14 +146,14 @@ console-plugin/
 
 ```json
 {
-  "name": "redfish-insights-plugin",
+  "name": "baremetal-insights-plugin",
   "version": "0.1.0",
   "displayName": "Firmware Insights",
   "proxy": {
     "services": [{
-      "alias": "redfish-insights",
-      "serviceName": "openshift-redfish-insights",
-      "serviceNamespace": "redfish-insights",
+      "alias": "baremetal-insights",
+      "serviceName": "openshift-baremetal-insights",
+      "serviceNamespace": "baremetal-insights",
       "servicePort": 8080
     }]
   }
@@ -165,7 +165,7 @@ console-plugin/
 ```typescript
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 
-const API_BASE = '/api/proxy/plugin/redfish-insights-plugin/redfish-insights';
+const API_BASE = '/api/proxy/plugin/baremetal-insights-plugin/baremetal-insights';
 
 export const getNodes = () => consoleFetchJSON(`${API_BASE}/api/v1/nodes`);
 export const getNodeFirmware = (name: string) => consoleFetchJSON(`${API_BASE}/api/v1/nodes/${name}/firmware`);
@@ -189,18 +189,18 @@ export const getUpdates = () => consoleFetchJSON(`${API_BASE}/api/v1/updates`);
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redfish-insights-plugin
-  namespace: redfish-insights
+  name: baremetal-insights-plugin
+  namespace: baremetal-insights
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: redfish-insights-plugin
+      app: baremetal-insights-plugin
   template:
     spec:
       containers:
       - name: plugin
-        image: redfish-insights-plugin:latest
+        image: baremetal-insights-plugin:latest
         ports:
         - containerPort: 9443
         volumeMounts:
@@ -209,34 +209,34 @@ spec:
       volumes:
       - name: serving-cert
         secret:
-          secretName: redfish-insights-plugin-cert
+          secretName: baremetal-insights-plugin-cert
 ---
 # Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: redfish-insights-plugin
+  name: baremetal-insights-plugin
   annotations:
-    service.beta.openshift.io/serving-cert-secret-name: redfish-insights-plugin-cert
+    service.beta.openshift.io/serving-cert-secret-name: baremetal-insights-plugin-cert
 spec:
   ports:
   - port: 9443
     targetPort: 9443
   selector:
-    app: redfish-insights-plugin
+    app: baremetal-insights-plugin
 ---
 # ConsolePlugin CR
 apiVersion: console.openshift.io/v1
 kind: ConsolePlugin
 metadata:
-  name: redfish-insights-plugin
+  name: baremetal-insights-plugin
 spec:
   displayName: "Firmware Insights"
   backend:
     type: Service
     service:
-      name: redfish-insights-plugin
-      namespace: redfish-insights
+      name: baremetal-insights-plugin
+      namespace: baremetal-insights
       port: 9443
       basePath: "/"
 ```
@@ -245,7 +245,7 @@ spec:
 
 ```bash
 oc patch console.operator cluster --type=merge \
-  -p '{"spec":{"plugins":["redfish-insights-plugin"]}}'
+  -p '{"spec":{"plugins":["baremetal-insights-plugin"]}}'
 ```
 
 ---

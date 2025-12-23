@@ -22,7 +22,7 @@
 Create `console-plugin/package.json`:
 ```json
 {
-  "name": "redfish-insights-plugin",
+  "name": "baremetal-insights-plugin",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -201,7 +201,7 @@ export default config;
 Create `console-plugin/plugin-manifest.json`:
 ```json
 {
-  "name": "redfish-insights-plugin",
+  "name": "baremetal-insights-plugin",
   "version": "0.1.0",
   "displayName": "Firmware Insights",
   "description": "View firmware inventory and update status for bare metal nodes",
@@ -463,7 +463,7 @@ Create `console-plugin/src/services/api.ts`:
 import { consoleFetchJSON } from '@openshift-console/dynamic-plugin-sdk';
 import { Node, NodesResponse, UpdatesResponse, FirmwareComponent } from '../types';
 
-const API_BASE = '/api/proxy/plugin/redfish-insights-plugin/redfish-insights';
+const API_BASE = '/api/proxy/plugin/baremetal-insights-plugin/baremetal-insights';
 
 export const getNodes = async (): Promise<Node[]> => {
   const response = await consoleFetchJSON<NodesResponse>(`${API_BASE}/api/v1/nodes`);
@@ -1647,23 +1647,23 @@ Create `console-plugin/deploy/deployment.yaml`:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redfish-insights-plugin
-  namespace: redfish-insights
+  name: baremetal-insights-plugin
+  namespace: baremetal-insights
   labels:
-    app: redfish-insights-plugin
+    app: baremetal-insights-plugin
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: redfish-insights-plugin
+      app: baremetal-insights-plugin
   template:
     metadata:
       labels:
-        app: redfish-insights-plugin
+        app: baremetal-insights-plugin
     spec:
       containers:
         - name: plugin
-          image: redfish-insights-plugin:latest
+          image: baremetal-insights-plugin:latest
           ports:
             - containerPort: 9443
               protocol: TCP
@@ -1681,7 +1681,7 @@ spec:
       volumes:
         - name: serving-cert
           secret:
-            secretName: redfish-insights-plugin-cert
+            secretName: baremetal-insights-plugin-cert
 ```
 
 **Step 2: Create service**
@@ -1691,12 +1691,12 @@ Create `console-plugin/deploy/service.yaml`:
 apiVersion: v1
 kind: Service
 metadata:
-  name: redfish-insights-plugin
-  namespace: redfish-insights
+  name: baremetal-insights-plugin
+  namespace: baremetal-insights
   labels:
-    app: redfish-insights-plugin
+    app: baremetal-insights-plugin
   annotations:
-    service.beta.openshift.io/serving-cert-secret-name: redfish-insights-plugin-cert
+    service.beta.openshift.io/serving-cert-secret-name: baremetal-insights-plugin-cert
 spec:
   type: ClusterIP
   ports:
@@ -1704,7 +1704,7 @@ spec:
       targetPort: 9443
       protocol: TCP
   selector:
-    app: redfish-insights-plugin
+    app: baremetal-insights-plugin
 ```
 
 **Step 3: Create ConsolePlugin CR**
@@ -1714,24 +1714,24 @@ Create `console-plugin/deploy/consoleplugin.yaml`:
 apiVersion: console.openshift.io/v1
 kind: ConsolePlugin
 metadata:
-  name: redfish-insights-plugin
+  name: baremetal-insights-plugin
 spec:
   displayName: "Firmware Insights"
   backend:
     type: Service
     service:
-      name: redfish-insights-plugin
-      namespace: redfish-insights
+      name: baremetal-insights-plugin
+      namespace: baremetal-insights
       port: 9443
       basePath: "/"
   proxy:
-    - alias: redfish-insights
+    - alias: baremetal-insights
       authorize: true
       endpoint:
         type: Service
         service:
-          name: openshift-redfish-insights
-          namespace: redfish-insights
+          name: openshift-baremetal-insights
+          namespace: baremetal-insights
           port: 8080
 ```
 
@@ -1781,7 +1781,7 @@ plugin-test:
 	cd console-plugin && npm test
 
 plugin-image:
-	podman build -t redfish-insights-plugin:latest console-plugin/
+	podman build -t baremetal-insights-plugin:latest console-plugin/
 
 all: build plugin-build
 ```
@@ -1828,7 +1828,7 @@ Expected: Build succeeds, dist/ created
 
 Run:
 ```bash
-podman build -t redfish-insights-plugin:latest console-plugin/
+podman build -t baremetal-insights-plugin:latest console-plugin/
 ```
 
 Expected: Image builds successfully
@@ -1868,5 +1868,5 @@ Phase 3 implementation creates:
 **Enable plugin after deployment:**
 ```bash
 oc patch console.operator cluster --type=merge \
-  -p '{"spec":{"plugins":["redfish-insights-plugin"]}}'
+  -p '{"spec":{"plugins":["baremetal-insights-plugin"]}}'
 ```

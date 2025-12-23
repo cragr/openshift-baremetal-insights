@@ -1,7 +1,7 @@
 FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 RUN microdnf install -y ca-certificates && microdnf clean all
-COPY bin/openshift-redfish-insights-amd64 /openshift-redfish-insights
+COPY bin/openshift-baremetal-insights-amd64 /openshift-baremetal-insights
 
 USER 1001
 
-ENTRYPOINT ["/openshift-redfish-insights"]
+ENTRYPOINT ["/openshift-baremetal-insights"]
