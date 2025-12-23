@@ -5,8 +5,8 @@ GO=go
 
 # Image configuration
 REGISTRY ?= quay.io/cragr
-BACKEND_IMAGE ?= $(REGISTRY)/openshift-redfish-insights
-PLUGIN_IMAGE ?= $(REGISTRY)/redfish-insights-plugin
+BACKEND_IMAGE ?= $(REGISTRY)/openshift-baremetal-insights
+PLUGIN_IMAGE ?= $(REGISTRY)/openshift-baremetal-insights-plugin
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 
 # Go targets
@@ -55,17 +55,17 @@ push: push-backend push-plugin
 
 # Helm targets
 helm-template:
-	helm template redfish-insights helm/openshift-redfish-insights/
+	helm template baremetal-insights helm/openshift-baremetal-insights/
 
 helm-package:
-	helm package helm/openshift-redfish-insights/
+	helm package helm/openshift-baremetal-insights/
 
 helm-install:
-	helm upgrade --install redfish-insights helm/openshift-redfish-insights/ \
-		--namespace redfish-insights --create-namespace
+	helm upgrade --install baremetal-insights helm/openshift-baremetal-insights/ \
+		--namespace baremetal-insights --create-namespace
 
 helm-uninstall:
-	helm uninstall redfish-insights --namespace redfish-insights
+	helm uninstall baremetal-insights --namespace baremetal-insights
 
 # Combined targets
 all: build plugin-build
