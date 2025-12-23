@@ -85,9 +85,14 @@ describe('Dashboard', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
     });
+    // Old expandable section titles that should not exist
     expect(screen.queryByText('Health Overview')).not.toBeInTheDocument();
-    expect(screen.queryByText('Power Status')).not.toBeInTheDocument();
     expect(screen.queryByText('Redfish Jobs')).not.toBeInTheDocument();
     expect(screen.queryByText('Firmware Updates')).not.toBeInTheDocument();
+
+    // New card titles that should exist (but not as expandable sections)
+    expect(screen.getByText('Health Status')).toBeInTheDocument();
+    expect(screen.getByText('Power Status')).toBeInTheDocument();
+    expect(screen.getByText('Updates Available')).toBeInTheDocument();
   });
 });
