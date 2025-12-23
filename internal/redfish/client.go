@@ -158,6 +158,29 @@ func contains(s string, substrs ...string) bool {
 	return false
 }
 
+// formatLinkSpeed converts Mbps to human-readable format
+func formatLinkSpeed(mbps int) string {
+	if mbps >= 1000 {
+		return fmt.Sprintf("%d Gbps", mbps/1000)
+	}
+	if mbps > 0 {
+		return fmt.Sprintf("%d Mbps", mbps)
+	}
+	return "Unknown"
+}
+
+// normalizeLinkStatus converts Redfish LinkStatus to simplified status
+func normalizeLinkStatus(status string) string {
+	switch status {
+	case "LinkUp":
+		return "Up"
+	case "LinkDown", "NoLink":
+		return "Down"
+	default:
+		return "Unknown"
+	}
+}
+
 func parseHealthStatus(h common.Health) models.HealthStatus {
 	switch h {
 	case common.OKHealth:
@@ -688,4 +711,73 @@ func (c *Client) GetEvents(ctx context.Context, bmcAddress, username, password s
 	}
 
 	return events, nil
+}
+
+// GetNetworkAdapters fetches network interface details from Redfish
+func (c *Client) GetNetworkAdapters(ctx context.Context, bmcAddress, username, password string) ([]models.NetworkAdapter, error) {
+	config := gofish.ClientConfig{
+		Endpoint:   fmt.Sprintf("https://%s", bmcAddress),
+		Username:   username,
+		Password:   password,
+		Insecure:   true,
+		HTTPClient: c.httpClient,
+	}
+
+	client, err := gofish.Connect(config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to BMC: %w", err)
+	}
+	defer client.Logout()
+
+	service := client.GetService()
+	systems, err := service.Systems()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get systems: %w", err)
+	}
+
+	if len(systems) == 0 {
+		return nil, fmt.Errorf("no systems found")
+	}
+
+	adapters := make([]models.NetworkAdapter, 0)
+
+	// Get EthernetInterfaces from Systems endpoint
+	ethInterfaces, err := systems[0].EthernetInterfaces()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ethernet interfaces: %w", err)
+	}
+
+	for _, eth := range ethInterfaces {
+		adapter := models.NetworkAdapter{
+			Name:       eth.Name,
+			Port:       eth.ID,
+			MACAddress: eth.MACAddress,
+			LinkStatus: normalizeLinkStatus(string(eth.LinkStatus)),
+			LinkSpeed:  formatLinkSpeed(eth.SpeedMbps),
+			Model:      eth.Name, // Default to name, will be enriched if NetworkAdapters available
+		}
+		adapters = append(adapters, adapter)
+	}
+
+	// Try to get detailed model info from Chassis NetworkAdapters
+	chassis, err := service.Chassis()
+	if err == nil && len(chassis) > 0 {
+		for _, ch := range chassis {
+			netAdapters, err := ch.NetworkAdapters()
+			if err != nil || len(netAdapters) == 0 {
+				continue
+			}
+			// Build model lookup from network adapters
+			for _, na := range netAdapters {
+				// Update adapters that match this network adapter's ports
+				for i := range adapters {
+					if contains(adapters[i].Port, na.ID) || contains(adapters[i].Name, na.ID) {
+						adapters[i].Model = na.Model
+					}
+				}
+			}
+		}
+	}
+
+	return adapters, nil
 }
