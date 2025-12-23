@@ -1,11 +1,11 @@
 # helm/openshift-redfish-insights/values.yaml
 namespace:
   create: true
-  name: redfish-insights
+  name: baremetal-insights
 
 backend:
   image:
-    repository: quay.io/cragr/openshift-redfish-insights
+    repository: quay.io/cragr/openshift-baremetal-insights
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -26,7 +26,7 @@ backend:
 
 plugin:
   image:
-    repository: quay.io/cragr/redfish-insights-plugin
+    repository: quay.io/cragr/openshift-baremetal-insights-plugin
     tag: latest
     pullPolicy: Always
   replicas: 1
