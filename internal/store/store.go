@@ -52,3 +52,36 @@ func (s *Store) DeleteNode(name string) {
 	defer s.mu.Unlock()
 	delete(s.nodes, name)
 }
+
+// ListNodesByNamespace returns nodes, optionally filtered by namespace
+func (s *Store) ListNodesByNamespace(namespace string) []models.Node {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	nodes := make([]models.Node, 0, len(s.nodes))
+	for _, node := range s.nodes {
+		if namespace == "" || node.Namespace == namespace {
+			nodes = append(nodes, node)
+		}
+	}
+	return nodes
+}
+
+// GetNamespaces returns unique namespaces from stored nodes
+func (s *Store) GetNamespaces() []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	nsMap := make(map[string]bool)
+	for _, node := range s.nodes {
+		if node.Namespace != "" {
+			nsMap[node.Namespace] = true
+		}
+	}
+
+	namespaces := make([]string, 0, len(nsMap))
+	for ns := range nsMap {
+		namespaces = append(namespaces, ns)
+	}
+	return namespaces
+}
