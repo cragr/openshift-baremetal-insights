@@ -15,6 +15,7 @@ import {
   SelectList,
   MenuToggle,
   MenuToggleElement,
+  SearchInput,
 } from '@patternfly/react-core';
 import {
   Table,
@@ -34,6 +35,7 @@ export const HealthEvents: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [severityFilter, setSeverityFilter] = useState<HealthStatus | 'All'>('All');
   const [isSeverityOpen, setIsSeverityOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,9 +51,25 @@ export const HealthEvents: React.FC = () => {
     fetchData();
   }, []);
 
-  let filteredEvents = events;
+  // Filter events from last 7 days
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  let filteredEvents = events.filter((e) => new Date(e.timestamp) >= sevenDaysAgo);
+
+  // Apply severity filter
   if (severityFilter !== 'All') {
-    filteredEvents = events.filter((e) => e.severity === severityFilter);
+    filteredEvents = filteredEvents.filter((e) => e.severity === severityFilter);
+  }
+
+  // Apply search filter (searches both message and nodeName)
+  if (searchValue.trim()) {
+    const searchLower = searchValue.toLowerCase();
+    filteredEvents = filteredEvents.filter(
+      (e) =>
+        e.message.toLowerCase().includes(searchLower) ||
+        e.nodeName.toLowerCase().includes(searchLower)
+    );
   }
 
   if (loading) {
@@ -79,11 +97,20 @@ export const HealthEvents: React.FC = () => {
   return (
     <Page>
       <PageSection variant="light">
-        <Title headingLevel="h1">Health Events</Title>
+        <Title headingLevel="h1">Recent Events</Title>
       </PageSection>
       <PageSection>
         <Toolbar>
           <ToolbarContent>
+            <ToolbarItem>
+              <SearchInput
+                placeholder="Search by event or node name..."
+                value={searchValue}
+                onChange={(_event, value) => setSearchValue(value)}
+                onClear={() => setSearchValue('')}
+                style={{ width: '300px' }}
+              />
+            </ToolbarItem>
             <ToolbarItem>
               <Select
                 isOpen={isSeverityOpen}

@@ -6,17 +6,21 @@ import { HealthEvent } from '../types';
 
 jest.mock('../services/api');
 
+// Create timestamps within last 7 days for testing
+const recentTimestamp = new Date();
+recentTimestamp.setDate(recentTimestamp.getDate() - 1);
+
 const mockEvents: HealthEvent[] = [
   {
     id: '1',
-    timestamp: '2025-12-22T14:00:00Z',
+    timestamp: recentTimestamp.toISOString(),
     severity: 'Critical',
     message: 'PSU 1 failed',
     nodeName: 'worker-0',
   },
   {
     id: '2',
-    timestamp: '2025-12-22T13:00:00Z',
+    timestamp: recentTimestamp.toISOString(),
     severity: 'Warning',
     message: 'Fan speed high',
     nodeName: 'worker-1',
@@ -35,7 +39,7 @@ describe('HealthEvents', () => {
       </MemoryRouter>
     );
     await waitFor(() => {
-      expect(screen.getByText('Health Events')).toBeInTheDocument();
+      expect(screen.getByText('Recent Events')).toBeInTheDocument();
     });
   });
 
