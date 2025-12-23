@@ -14,6 +14,8 @@ import {
   TasksResponse,
   FirmwareResponse,
   NamespacesResponse,
+  ScheduleUpdateRequest,
+  ScheduleUpdateResponse,
 } from '../types';
 
 const API_BASE = '/api/proxy/plugin/openshift-baremetal-insights-plugin/baremetal-insights';
@@ -83,4 +85,12 @@ export const getTasks = async (namespace?: string): Promise<Task[]> => {
 export const getFirmware = async (namespace?: string): Promise<FirmwareResponse> => {
   const params = namespace ? `?namespace=${encodeURIComponent(namespace)}` : '';
   return consoleFetchJSON(`${API_BASE}/api/v1/firmware${params}`);
+};
+
+export const scheduleUpdates = async (request: ScheduleUpdateRequest): Promise<ScheduleUpdateResponse> => {
+  return consoleFetchJSON(`${API_BASE}/api/v1/updates/schedule`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(request),
+  });
 };
