@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState, useMemo } from 'react';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import {
   Page,
   PageSection,
@@ -15,7 +15,7 @@ import {
   SelectList,
   MenuToggle,
   MenuToggleElement,
-  Button,
+  SearchInput,
 } from '@patternfly/react-core';
 import {
   Table,
@@ -33,25 +33,15 @@ import { NamespaceDropdown } from '../components/NamespaceDropdown';
 
 export const Nodes: React.FC = () => {
   const history = useHistory();
-  const location = useLocation();
   const [nodes, setNodes] = useState<Node[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [namespace, setNamespace] = useState<string>('');
-
-  // Initialize filters from URL query params
-  const queryParams = new URLSearchParams(location.search);
-  const initialHealth = queryParams.get('health') as HealthStatus | null;
-  const initialPower = queryParams.get('power') as PowerState | null;
-
-  const [healthFilter, setHealthFilter] = useState<HealthStatus | 'All'>(
-    initialHealth && ['OK', 'Warning', 'Critical'].includes(initialHealth) ? initialHealth : 'All'
-  );
-  const [powerStateFilter, setPowerStateFilter] = useState<PowerState | 'All'>(
-    initialPower && ['On', 'Off', 'Unknown'].includes(initialPower) ? initialPower : 'All'
-  );
+  const [healthFilter, setHealthFilter] = useState<HealthStatus | 'All'>('All');
+  const [powerStateFilter, setPowerStateFilter] = useState<PowerState | 'All'>('All');
   const [isHealthFilterOpen, setIsHealthFilterOpen] = useState(false);
   const [isPowerStateFilterOpen, setIsPowerStateFilterOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [activeSortIndex, setActiveSortIndex] = useState<number | null>(null);
   const [activeSortDirection, setActiveSortDirection] = useState<'asc' | 'desc'>('asc');
 
@@ -72,10 +62,10 @@ export const Nodes: React.FC = () => {
 
   const getSortableRowValues = (node: Node): (string | number)[] => [
     node.name,
-    node.serviceTag,
-    node.model,
     node.health,
     node.powerState,
+    node.serviceTag,
+    node.model,
     node.lastScanned,
   ];
 
@@ -93,6 +83,17 @@ export const Nodes: React.FC = () => {
 
   const filteredNodes = useMemo(() => {
     let result = nodes;
+
+    // Search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter((n) =>
+        n.name.toLowerCase().includes(term) ||
+        n.model.toLowerCase().includes(term) ||
+        n.serviceTag.toLowerCase().includes(term)
+      );
+    }
+
     if (healthFilter !== 'All') {
       result = result.filter((n) => n.health === healthFilter);
     }
@@ -113,7 +114,7 @@ export const Nodes: React.FC = () => {
       });
     }
     return result;
-  }, [nodes, healthFilter, powerStateFilter, activeSortIndex, activeSortDirection]);
+  }, [nodes, searchTerm, healthFilter, powerStateFilter, activeSortIndex, activeSortDirection]);
 
   if (loading) {
     return (
@@ -147,6 +148,15 @@ export const Nodes: React.FC = () => {
           <ToolbarContent>
             <ToolbarItem>
               <NamespaceDropdown selected={namespace} onSelect={setNamespace} />
+            </ToolbarItem>
+            <ToolbarItem>
+              <SearchInput
+                placeholder="Search by name, model, or service tag"
+                value={searchTerm}
+                onChange={(_event, value) => setSearchTerm(value)}
+                onClear={() => setSearchTerm('')}
+                style={{ width: '300px' }}
+              />
             </ToolbarItem>
             <ToolbarItem>
               <Select
@@ -200,10 +210,10 @@ export const Nodes: React.FC = () => {
           <Thead>
             <Tr>
               <Th sort={getSortParams(0)}>Name</Th>
-              <Th sort={getSortParams(1)}>Service Tag</Th>
-              <Th sort={getSortParams(2)}>Model</Th>
-              <Th sort={getSortParams(3)}>Health</Th>
-              <Th sort={getSortParams(4)}>Power State</Th>
+              <Th sort={getSortParams(1)}>Health</Th>
+              <Th sort={getSortParams(2)}>Power State</Th>
+              <Th sort={getSortParams(3)}>Service Tag</Th>
+              <Th sort={getSortParams(4)}>Model</Th>
               <Th sort={getSortParams(5)}>Last Scanned</Th>
             </Tr>
           </Thead>
@@ -215,23 +225,23 @@ export const Nodes: React.FC = () => {
                 onRowClick={() => history.push(`/baremetal-insights/nodes/${node.name}`)}
               >
                 <Td dataLabel="Name">
-                  <Button
-                    variant="link"
-                    isInline
+                  <a
+                    href="#"
                     onClick={(e) => {
-                      e.stopPropagation();
-                      history.push(`/k8s/ns/${node.namespace}/metal3.io~v1alpha1~BareMetalHost/${node.name}`);
+                      e.preventDefault();
+                      history.push(`/baremetal-insights/nodes/${node.name}`);
                     }}
+                    style={{ color: 'var(--pf-v5-global--link--Color)', textDecoration: 'none' }}
                   >
                     {node.name}
-                  </Button>
+                  </a>
                 </Td>
-                <Td dataLabel="Service Tag">{node.serviceTag}</Td>
-                <Td dataLabel="Model">{node.model}</Td>
                 <Td dataLabel="Health">
                   <HealthStatusIcon status={node.health} showLabel />
                 </Td>
                 <Td dataLabel="Power State">{node.powerState}</Td>
+                <Td dataLabel="Service Tag">{node.serviceTag}</Td>
+                <Td dataLabel="Model">{node.model}</Td>
                 <Td dataLabel="Last Scanned">{new Date(node.lastScanned).toLocaleString()}</Td>
               </Tr>
             ))}
