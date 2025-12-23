@@ -2,17 +2,17 @@
   {
     "type": "console.navigation/section",
     "properties": {
-      "id": "redfish-insights",
+      "id": "baremetal-insights",
       "perspective": "admin",
-      "name": "Redfish Insights"
+      "name": "BareMetal Insights"
     }
   },
   {
     "type": "console.navigation/href",
     "properties": {
-      "id": "redfish-dashboard",
+      "id": "baremetal-dashboard",
       "perspective": "admin",
-      "section": "redfish-insights",
+      "section": "baremetal-insights",
       "name": "Dashboard",
       "href": "/baremetal-insights"
     }
@@ -20,9 +20,9 @@
   {
     "type": "console.navigation/href",
     "properties": {
-      "id": "redfish-nodes",
+      "id": "baremetal-nodes",
       "perspective": "admin",
-      "section": "redfish-insights",
+      "section": "baremetal-insights",
       "name": "Nodes",
       "href": "/baremetal-insights/nodes"
     }
@@ -30,9 +30,9 @@
   {
     "type": "console.navigation/href",
     "properties": {
-      "id": "redfish-firmware",
+      "id": "baremetal-firmware",
       "perspective": "admin",
-      "section": "redfish-insights",
+      "section": "baremetal-insights",
       "name": "Firmware",
       "href": "/baremetal-insights/firmware"
     }
@@ -40,9 +40,9 @@
   {
     "type": "console.navigation/href",
     "properties": {
-      "id": "redfish-events",
+      "id": "baremetal-events",
       "perspective": "admin",
-      "section": "redfish-insights",
+      "section": "baremetal-insights",
       "name": "Health Events",
       "href": "/baremetal-insights/events"
     }

@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
+FROM registry.access.redhat.com/ubi10-minimal:latest
 RUN microdnf install -y ca-certificates && microdnf clean all
 COPY bin/openshift-baremetal-insights-amd64 /openshift-baremetal-insights
 
