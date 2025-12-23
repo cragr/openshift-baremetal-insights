@@ -18,6 +18,7 @@ import (
 type Server struct {
 	store      *store.Store
 	eventStore *store.EventStore
+	taskStore  *store.TaskStore
 	router     *chi.Mux
 	addr       string
 	server     *http.Server
@@ -64,6 +65,51 @@ func NewServerWithEvents(s *store.Store, es *store.EventStore, addr, certFile, k
 		r.Get("/health", srv.health)
 		r.Get("/dashboard", srv.dashboard)
 		r.Get("/namespaces", srv.listNamespaces)
+	})
+
+	r.Handle("/metrics", promhttp.Handler())
+	r.HandleFunc("/healthz", healthzHandler)
+
+	srv.router = r
+	return srv
+}
+
+// NewServerWithTasks creates a new API server with all stores
+func NewServerWithTasks(s *store.Store, es *store.EventStore, ts *store.TaskStore, addr, certFile, keyFile string) *Server {
+	srv := &Server{
+		store:      s,
+		eventStore: es,
+		taskStore:  ts,
+		addr:       addr,
+		certFile:   certFile,
+		keyFile:    keyFile,
+	}
+
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.RequestID)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"https://*"},
+		AllowedMethods:   []string{"GET", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Content-Type"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
+
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Get("/nodes", srv.listNodes)
+		r.Get("/nodes/{name}/firmware", srv.getNodeFirmware)
+		r.Get("/nodes/{name}/health", srv.getNodeHealth)
+		r.Get("/nodes/{name}/thermal", srv.getNodeThermal)
+		r.Get("/nodes/{name}/power", srv.getNodePower)
+		r.Get("/nodes/{name}/events", srv.getNodeEvents)
+		r.Get("/updates", srv.listUpdates)
+		r.Get("/events", srv.listEvents)
+		r.Get("/health", srv.health)
+		r.Get("/dashboard", srv.dashboard)
+		r.Get("/namespaces", srv.listNamespaces)
+		r.Get("/tasks", srv.listTasks)
 	})
 
 	r.Handle("/metrics", promhttp.Handler())

@@ -290,3 +290,30 @@ func TestServer_ListNamespaces(t *testing.T) {
 		t.Errorf("namespaces count = %d, want 2", len(namespaces))
 	}
 }
+
+func TestServer_ListTasks(t *testing.T) {
+	s := store.New()
+	ts := store.NewTaskStore()
+	ts.SetTask(models.Task{
+		TaskID:    "JID_1",
+		Node:      "node-1",
+		TaskState: models.TaskRunning,
+	})
+
+	srv := NewServerWithTasks(s, nil, ts, ":8080", "", "")
+
+	req := httptest.NewRequest("GET", "/api/v1/tasks", nil)
+	w := httptest.NewRecorder()
+	srv.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+
+	var resp map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &resp)
+	tasks := resp["tasks"].([]interface{})
+	if len(tasks) != 1 {
+		t.Errorf("tasks count = %d, want 1", len(tasks))
+	}
+}

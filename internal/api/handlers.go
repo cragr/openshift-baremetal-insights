@@ -280,3 +280,19 @@ func (s *Server) listNamespaces(w http.ResponseWriter, r *http.Request) {
 		"namespaces": namespaces,
 	})
 }
+
+func (s *Server) listTasks(w http.ResponseWriter, r *http.Request) {
+	if s.taskStore == nil {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]interface{}{"tasks": []interface{}{}})
+		return
+	}
+
+	namespace := r.URL.Query().Get("namespace")
+	tasks := s.taskStore.ListTasks(namespace)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"tasks": tasks,
+	})
+}
