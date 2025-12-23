@@ -19,13 +19,12 @@ import {
   Card,
   CardBody,
 } from '@patternfly/react-core';
-import { Node, FirmwareComponent, HealthEvent } from '../types';
-import { getNodes, getNodeFirmware, getNodeEvents } from '../services/api';
+import { Node, HealthEvent } from '../types';
+import { getNodes, getNodeEvents } from '../services/api';
 import { HealthStatusIcon } from '../components/HealthStatusIcon';
 import { HealthTab } from './tabs/HealthTab';
 import { ThermalTab } from './tabs/ThermalTab';
 import { PowerTab } from './tabs/PowerTab';
-import { FirmwareTab } from './tabs/FirmwareTab';
 import { EventsTab } from './tabs/EventsTab';
 
 export const NodeDetail: React.FC = () => {
@@ -36,7 +35,6 @@ export const NodeDetail: React.FC = () => {
     return match ? decodeURIComponent(match[1]) : undefined;
   }, [location.pathname]);
   const [node, setNode] = useState<Node | null>(null);
-  const [firmware, setFirmware] = useState<FirmwareComponent[]>([]);
   const [events, setEvents] = useState<HealthEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,9 +48,8 @@ export const NodeDetail: React.FC = () => {
         return;
       }
       try {
-        const [nodesData, firmwareData, eventsData] = await Promise.all([
+        const [nodesData, eventsData] = await Promise.all([
           getNodes(),
-          getNodeFirmware(name),
           getNodeEvents(name),
         ]);
         const foundNode = nodesData.find((n) => n.name === name);
@@ -60,7 +57,6 @@ export const NodeDetail: React.FC = () => {
           setError(`Node ${name} not found`);
         } else {
           setNode(foundNode);
-          setFirmware(firmwareData);
           setEvents(eventsData);
         }
       } catch (err) {
@@ -138,10 +134,7 @@ export const NodeDetail: React.FC = () => {
           <Tab eventKey={2} title={<TabTitleText>Power</TabTitleText>}>
             <div style={{ marginTop: '1rem' }}><PowerTab power={node.powerSummary} /></div>
           </Tab>
-          <Tab eventKey={3} title={<TabTitleText>Firmware ({firmware.length})</TabTitleText>}>
-            <div style={{ marginTop: '1rem' }}><FirmwareTab firmware={firmware} /></div>
-          </Tab>
-          <Tab eventKey={4} title={<TabTitleText>Events ({events.length})</TabTitleText>}>
+          <Tab eventKey={3} title={<TabTitleText>Events ({events.length})</TabTitleText>}>
             <div style={{ marginTop: '1rem' }}><EventsTab events={events} /></div>
           </Tab>
         </Tabs>
