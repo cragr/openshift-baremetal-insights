@@ -1,4 +1,4 @@
-# helm/openshift-redfish-insights/values.yaml
+# helm/openshift-baremetal-insights/values.yaml
 namespace:
   create: true
   name: baremetal-insights

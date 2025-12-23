@@ -1,6 +1,6 @@
 .PHONY: build run test clean lint plugin-build plugin-test images push helm-package helm-install all
 
-BINARY_NAME=openshift-redfish-insights
+BINARY_NAME=openshift-baremetal-insights
 GO=go
 
 # Image configuration
