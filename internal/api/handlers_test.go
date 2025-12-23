@@ -240,3 +240,53 @@ func TestListEventsHandler(t *testing.T) {
 		t.Errorf("expected 1 event, got %d", len(response.Events))
 	}
 }
+
+func TestServer_Dashboard(t *testing.T) {
+	s := store.New()
+	s.SetNode(models.Node{
+		Name:       "node-1",
+		Namespace:  "test-ns",
+		Health:     models.HealthOK,
+		PowerState: models.PowerOn,
+	})
+
+	srv := NewServer(s, ":8080", "", "")
+
+	req := httptest.NewRequest("GET", "/api/v1/dashboard", nil)
+	w := httptest.NewRecorder()
+	srv.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+
+	var resp models.DashboardStats
+	json.Unmarshal(w.Body.Bytes(), &resp)
+
+	if resp.TotalNodes != 1 {
+		t.Errorf("totalNodes = %d, want 1", resp.TotalNodes)
+	}
+}
+
+func TestServer_ListNamespaces(t *testing.T) {
+	s := store.New()
+	s.SetNode(models.Node{Name: "node-1", Namespace: "ns-a"})
+	s.SetNode(models.Node{Name: "node-2", Namespace: "ns-b"})
+
+	srv := NewServer(s, ":8080", "", "")
+
+	req := httptest.NewRequest("GET", "/api/v1/namespaces", nil)
+	w := httptest.NewRecorder()
+	srv.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+
+	var resp map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &resp)
+	namespaces := resp["namespaces"].([]interface{})
+	if len(namespaces) != 2 {
+		t.Errorf("namespaces count = %d, want 2", len(namespaces))
+	}
+}

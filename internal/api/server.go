@@ -62,6 +62,8 @@ func NewServerWithEvents(s *store.Store, es *store.EventStore, addr, certFile, k
 		r.Get("/updates", srv.listUpdates)
 		r.Get("/events", srv.listEvents)
 		r.Get("/health", srv.health)
+		r.Get("/dashboard", srv.dashboard)
+		r.Get("/namespaces", srv.listNamespaces)
 	})
 
 	r.Handle("/metrics", promhttp.Handler())

@@ -5,8 +5,10 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 func (s *Server) listNodes(w http.ResponseWriter, r *http.Request) {
@@ -210,4 +212,71 @@ func (s *Server) listEvents(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+func (s *Server) dashboard(w http.ResponseWriter, r *http.Request) {
+	namespace := r.URL.Query().Get("namespace")
+	nodes := s.store.ListNodesByNamespace(namespace)
+
+	stats := models.DashboardStats{
+		TotalNodes:  len(nodes),
+		LastRefresh: time.Now(),
+		NextRefresh: time.Now().Add(30 * time.Minute),
+	}
+
+	// Health summary
+	for _, node := range nodes {
+		switch node.Health {
+		case models.HealthOK:
+			stats.HealthSummary.Healthy++
+		case models.HealthWarning:
+			stats.HealthSummary.Warning++
+		case models.HealthCritical:
+			stats.HealthSummary.Critical++
+		}
+	}
+
+	// Power summary
+	for _, node := range nodes {
+		switch node.PowerState {
+		case models.PowerOn:
+			stats.PowerSummary.On++
+		case models.PowerOff:
+			stats.PowerSummary.Off++
+		}
+	}
+
+	// Updates summary
+	nodesWithUpdates := make(map[string]bool)
+	for _, node := range nodes {
+		for _, fw := range node.Firmware {
+			if fw.NeedsUpdate() {
+				stats.UpdatesSummary.Total++
+				nodesWithUpdates[node.Name] = true
+				switch fw.Severity {
+				case models.SeverityCritical:
+					stats.UpdatesSummary.Critical++
+				case models.SeverityRecommended:
+					stats.UpdatesSummary.Recommended++
+				case models.SeverityOptional:
+					stats.UpdatesSummary.Optional++
+				}
+			}
+		}
+	}
+	stats.UpdatesSummary.NodesWithUpdates = len(nodesWithUpdates)
+
+	// Jobs summary (placeholder - will be populated from TaskStore later)
+	stats.JobsSummary = models.JobsSummary{}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(stats)
+}
+
+func (s *Server) listNamespaces(w http.ResponseWriter, r *http.Request) {
+	namespaces := s.store.GetNamespaces()
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"namespaces": namespaces,
+	})
 }
