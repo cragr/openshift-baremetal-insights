@@ -1,22 +1,22 @@
 apiVersion: console.openshift.io/v1
 kind: ConsolePlugin
 metadata:
-  name: redfish-insights-plugin
+  name: baremetal-insights-plugin
 spec:
   displayName: "Firmware Insights"
   backend:
     type: Service
     service:
-      name: redfish-insights-plugin
-      namespace: redfish-insights
+      name: baremetal-insights-plugin
+      namespace: baremetal-insights
       port: 9443
       basePath: "/"
   proxy:
-    - alias: redfish-insights
+    - alias: baremetal-insights
       authorize: true
       endpoint:
         type: Service
         service:
-          name: openshift-redfish-insights
-          namespace: redfish-insights
+          name: openshift-baremetal-insights
+          namespace: baremetal-insights
           port: 8080
