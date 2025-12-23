@@ -340,3 +340,36 @@ func TestServer_ListNodes_NamespaceFilter(t *testing.T) {
 		t.Errorf("nodes count = %d, want 1", len(nodes))
 	}
 }
+
+func TestServer_ListFirmware(t *testing.T) {
+	s := store.New()
+	s.SetNode(models.Node{
+		Name:      "node-1",
+		Namespace: "ns-a",
+		Firmware: []models.FirmwareComponent{
+			{ID: "bios", Name: "BIOS", CurrentVersion: "1.0", AvailableVersion: "2.0", Severity: models.SeverityCritical},
+			{ID: "idrac", Name: "iDRAC", CurrentVersion: "2.0"},
+		},
+	})
+
+	srv := NewServer(s, ":8080", "", "")
+
+	req := httptest.NewRequest("GET", "/api/v1/firmware", nil)
+	w := httptest.NewRecorder()
+	srv.router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("status = %d, want %d", w.Code, http.StatusOK)
+	}
+
+	var resp map[string]interface{}
+	json.Unmarshal(w.Body.Bytes(), &resp)
+
+	summary := resp["summary"].(map[string]interface{})
+	if summary["total"].(float64) != 2 {
+		t.Errorf("summary.total = %v, want 2", summary["total"])
+	}
+	if summary["updatesAvailable"].(float64) != 1 {
+		t.Errorf("summary.updatesAvailable = %v, want 1", summary["updatesAvailable"])
+	}
+}

@@ -65,6 +65,7 @@ func NewServerWithEvents(s *store.Store, es *store.EventStore, addr, certFile, k
 		r.Get("/health", srv.health)
 		r.Get("/dashboard", srv.dashboard)
 		r.Get("/namespaces", srv.listNamespaces)
+		r.Get("/firmware", srv.listFirmware)
 	})
 
 	r.Handle("/metrics", promhttp.Handler())
@@ -110,6 +111,7 @@ func NewServerWithTasks(s *store.Store, es *store.EventStore, ts *store.TaskStor
 		r.Get("/dashboard", srv.dashboard)
 		r.Get("/namespaces", srv.listNamespaces)
 		r.Get("/tasks", srv.listTasks)
+		r.Get("/firmware", srv.listFirmware)
 	})
 
 	r.Handle("/metrics", promhttp.Handler())

@@ -297,3 +297,52 @@ func (s *Server) listTasks(w http.ResponseWriter, r *http.Request) {
 		"tasks": tasks,
 	})
 }
+
+// FirmwareEntry represents firmware with node context
+type FirmwareEntry struct {
+	Node      string                   `json:"node"`
+	Namespace string                   `json:"namespace"`
+	Firmware  models.FirmwareComponent `json:"firmware"`
+}
+
+func (s *Server) listFirmware(w http.ResponseWriter, r *http.Request) {
+	namespace := r.URL.Query().Get("namespace")
+	nodes := s.store.ListNodesByNamespace(namespace)
+
+	var entries []FirmwareEntry
+	summary := struct {
+		Total            int `json:"total"`
+		UpdatesAvailable int `json:"updatesAvailable"`
+		Critical         int `json:"critical"`
+		Recommended      int `json:"recommended"`
+		Optional         int `json:"optional"`
+	}{}
+
+	for _, node := range nodes {
+		for _, fw := range node.Firmware {
+			entries = append(entries, FirmwareEntry{
+				Node:      node.Name,
+				Namespace: node.Namespace,
+				Firmware:  fw,
+			})
+			summary.Total++
+			if fw.NeedsUpdate() {
+				summary.UpdatesAvailable++
+				switch fw.Severity {
+				case models.SeverityCritical:
+					summary.Critical++
+				case models.SeverityRecommended:
+					summary.Recommended++
+				case models.SeverityOptional:
+					summary.Optional++
+				}
+			}
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"summary":  summary,
+		"firmware": entries,
+	})
+}
