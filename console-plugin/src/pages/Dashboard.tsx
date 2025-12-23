@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useHistory } from 'react-router-dom';
 import {
   Page,
@@ -14,10 +14,12 @@ import {
   FlexItem,
   Grid,
   GridItem,
+  List,
+  ListItem,
 } from '@patternfly/react-core';
 import { ChartDonut } from '@patternfly/react-charts';
-import { DashboardStats } from '../types';
-import { getDashboard } from '../services/api';
+import { DashboardStats, Node } from '../types';
+import { getDashboard, getNodes } from '../services/api';
 import { NamespaceDropdown } from '../components/NamespaceDropdown';
 
 import './Dashboard.css';
@@ -25,6 +27,7 @@ import './Dashboard.css';
 export const Dashboard: React.FC = () => {
   const history = useHistory();
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [nodes, setNodes] = useState<Node[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [namespace, setNamespace] = useState('');
@@ -32,8 +35,12 @@ export const Dashboard: React.FC = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const dashboardData = await getDashboard(namespace || undefined);
+      const [dashboardData, nodesData] = await Promise.all([
+        getDashboard(namespace || undefined),
+        getNodes(namespace || undefined),
+      ]);
       setStats(dashboardData);
+      setNodes(nodesData);
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
@@ -41,6 +48,17 @@ export const Dashboard: React.FC = () => {
       setLoading(false);
     }
   }, [namespace]);
+
+  const modelCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    nodes.forEach((node) => {
+      const model = node.model || 'Unknown';
+      counts[model] = (counts[model] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([model, count]) => ({ model, count }));
+  }, [nodes]);
 
   useEffect(() => {
     fetchData();
@@ -126,6 +144,7 @@ export const Dashboard: React.FC = () => {
       {stats && (
         <PageSection>
           <Grid hasGutter>
+            {/* Row 1: Number Cards */}
             {/* Total Nodes Card */}
             <GridItem span={6}>
               <Card
@@ -141,7 +160,28 @@ export const Dashboard: React.FC = () => {
               </Card>
             </GridItem>
 
-            {/* Health Status Card */}
+            {/* Servers Needing Updates Card */}
+            <GridItem span={6}>
+              <Card
+                isClickable
+                isSelectable
+                onClick={handleUpdatesClick}
+                className="dashboard-card dashboard-card--clickable"
+              >
+                <CardTitle>Servers Needing Updates</CardTitle>
+                <CardBody className="dashboard-card__body--centered">
+                  <span className="dashboard-card__number">{stats.updatesSummary.nodesWithUpdates}</span>
+                  {stats.updatesSummary.critical > 0 && (
+                    <span className="dashboard-card__subtitle dashboard-card__subtitle--critical">
+                      {stats.updatesSummary.critical} critical updates
+                    </span>
+                  )}
+                </CardBody>
+              </Card>
+            </GridItem>
+
+            {/* Row 2: Chart Cards */}
+            {/* System Health Card */}
             <GridItem span={6}>
               <Card
                 isClickable
@@ -149,12 +189,12 @@ export const Dashboard: React.FC = () => {
                 onClick={() => handleHealthClick()}
                 className="dashboard-card dashboard-card--clickable"
               >
-                <CardTitle>Health Status</CardTitle>
+                <CardTitle>System Health</CardTitle>
                 <CardBody className="dashboard-card__body--chart">
                   <div className="dashboard-card__chart-container">
                     <ChartDonut
-                      ariaDesc="Health status distribution"
-                      ariaTitle="Health Status"
+                      ariaDesc="System health distribution"
+                      ariaTitle="System Health"
                       constrainToVisibleArea
                       data={healthData}
                       labels={({ datum }) => `${datum.x}: ${datum.y}`}
@@ -243,21 +283,22 @@ export const Dashboard: React.FC = () => {
               </Card>
             </GridItem>
 
-            {/* Updates Available Card */}
-            <GridItem span={6}>
-              <Card
-                isClickable
-                isSelectable
-                onClick={handleUpdatesClick}
-                className="dashboard-card dashboard-card--clickable"
-              >
-                <CardTitle>Updates Available</CardTitle>
-                <CardBody className="dashboard-card__body--centered">
-                  <span className="dashboard-card__number">{stats.updatesSummary.total}</span>
-                  {stats.updatesSummary.critical > 0 && (
-                    <span className="dashboard-card__subtitle dashboard-card__subtitle--critical">
-                      {stats.updatesSummary.critical} critical
-                    </span>
+            {/* Row 3: Server Models Card (full width) */}
+            <GridItem span={12}>
+              <Card className="dashboard-card dashboard-card--models">
+                <CardTitle>Server Models</CardTitle>
+                <CardBody className="dashboard-card__body--list">
+                  {modelCounts.length > 0 ? (
+                    <List isPlain className="dashboard-card__model-list">
+                      {modelCounts.map(({ model, count }) => (
+                        <ListItem key={model} className="dashboard-card__model-item">
+                          <span className="dashboard-card__model-name">{model}</span>
+                          <span className="dashboard-card__model-count">{count}</span>
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <span className="dashboard-card__no-data">No server models available</span>
                   )}
                 </CardBody>
               </Card>

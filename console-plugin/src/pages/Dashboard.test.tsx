@@ -22,12 +22,18 @@ const mockDashboardData = {
   nextRefresh: new Date(Date.now() + 60000).toISOString(),
 };
 
+const mockNodesData = [
+  { name: 'node-1', namespace: 'ns-a', model: 'PowerEdge R640', health: 'OK', powerState: 'On', serviceTag: 'ABC', lastScanned: new Date().toISOString() },
+  { name: 'node-2', namespace: 'ns-a', model: 'PowerEdge R640', health: 'OK', powerState: 'On', serviceTag: 'DEF', lastScanned: new Date().toISOString() },
+  { name: 'node-3', namespace: 'ns-a', model: 'PowerEdge R740', health: 'Warning', powerState: 'On', serviceTag: 'GHI', lastScanned: new Date().toISOString() },
+];
+
 describe('Dashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (getNamespaces as jest.Mock).mockResolvedValue(['ns-a']);
     (getDashboard as jest.Mock).mockResolvedValue(mockDashboardData);
-    (getNodes as jest.Mock).mockResolvedValue([]);
+    (getNodes as jest.Mock).mockResolvedValue(mockNodesData);
     (getTasks as jest.Mock).mockResolvedValue([]);
   });
 
@@ -53,14 +59,14 @@ describe('Dashboard', () => {
     });
   });
 
-  it('displays updates available count', async () => {
+  it('displays servers needing updates count', async () => {
     render(
       <MemoryRouter>
         <Dashboard />
       </MemoryRouter>
     );
     await waitFor(() => {
-      expect(screen.getByText('12')).toBeInTheDocument();
+      expect(screen.getByText('5')).toBeInTheDocument();
     });
   });
 
@@ -90,9 +96,22 @@ describe('Dashboard', () => {
     expect(screen.queryByText('Redfish Jobs')).not.toBeInTheDocument();
     expect(screen.queryByText('Firmware Updates')).not.toBeInTheDocument();
 
-    // New card titles that should exist (but not as expandable sections)
-    expect(screen.getByText('Health Status')).toBeInTheDocument();
+    // New card titles that should exist
+    expect(screen.getByText('System Health')).toBeInTheDocument();
     expect(screen.getByText('Power Status')).toBeInTheDocument();
-    expect(screen.getByText('Updates Available')).toBeInTheDocument();
+    expect(screen.getByText('Servers Needing Updates')).toBeInTheDocument();
+    expect(screen.getByText('Server Models')).toBeInTheDocument();
+  });
+
+  it('displays server models with counts', async () => {
+    render(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByText('PowerEdge R640')).toBeInTheDocument();
+    });
+    expect(screen.getByText('PowerEdge R740')).toBeInTheDocument();
   });
 });
