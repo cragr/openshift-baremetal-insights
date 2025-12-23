@@ -2,11 +2,11 @@
 apiVersion: console.openshift.io/v1
 kind: ConsolePlugin
 metadata:
-  name: baremetal-insights-plugin
+  name: openshift-baremetal-insights-plugin
   labels:
     {{- include "baremetal-insights.labels" . | nindent 4 }}
 spec:
-  displayName: "Firmware Insights"
+  displayName: "BareMetal Insights"
   backend:
     type: Service
     service:
