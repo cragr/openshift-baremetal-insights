@@ -1,8 +1,8 @@
-# Redfish Insights: Enhanced Health Visibility Design
+# BareMetal Insights: Enhanced Health Visibility Design
 
 ## Overview
 
-Extend the OpenShift Redfish Insights console plugin to provide comprehensive hardware health visibility beyond firmware inventory. Enable operations teams to quickly identify and troubleshoot server issues directly from the OpenShift Console.
+Extend the OpenShift BareMetal Insights console plugin to provide comprehensive hardware health visibility beyond firmware inventory. Enable operations teams to quickly identify and troubleshoot server issues directly from the OpenShift Console.
 
 **Goal:** Provide instant fleet-wide health visibility with drill-down to individual node details.
 
@@ -12,10 +12,10 @@ Extend the OpenShift Redfish Insights console plugin to provide comprehensive ha
 
 ## Navigation Structure
 
-New "Redfish Insights" section in the OpenShift Console admin perspective:
+New "BareMetal Insights" section in the OpenShift Console admin perspective:
 
 ```
-Redfish Insights (Section)
+BareMetal Insights (Section)
 ├── Overview          ← Fleet health dashboard
 ├── Nodes             ← Node list with health status
 ├── Health Events     ← Fleet-wide event timeline
@@ -302,9 +302,9 @@ Recent SEL entries for this node only.
   {
     "type": "console.navigation/section",
     "properties": {
-      "id": "redfish-insights",
+      "id": "baremetal-insights",
       "perspective": "admin",
-      "name": "Redfish Insights"
+      "name": "BareMetal Insights"
     }
   },
   {
@@ -312,9 +312,9 @@ Recent SEL entries for this node only.
     "properties": {
       "id": "redfish-overview",
       "perspective": "admin",
-      "section": "redfish-insights",
+      "section": "baremetal-insights",
       "name": "Overview",
-      "href": "/redfish-insights"
+      "href": "/baremetal-insights"
     }
   },
   {
@@ -322,9 +322,9 @@ Recent SEL entries for this node only.
     "properties": {
       "id": "redfish-nodes",
       "perspective": "admin",
-      "section": "redfish-insights",
+      "section": "baremetal-insights",
       "name": "Nodes",
-      "href": "/redfish-insights/nodes"
+      "href": "/baremetal-insights/nodes"
     }
   },
   {
@@ -332,9 +332,9 @@ Recent SEL entries for this node only.
     "properties": {
       "id": "redfish-events",
       "perspective": "admin",
-      "section": "redfish-insights",
+      "section": "baremetal-insights",
       "name": "Health Events",
-      "href": "/redfish-insights/events"
+      "href": "/baremetal-insights/events"
     }
   }
 ]
@@ -347,28 +347,28 @@ Recent SEL entries for this node only.
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/redfish-insights",
+      "path": "/baremetal-insights",
       "component": { "$codeRef": "Overview" }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/redfish-insights/nodes",
+      "path": "/baremetal-insights/nodes",
       "component": { "$codeRef": "Nodes" }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/redfish-insights/nodes/:name",
+      "path": "/baremetal-insights/nodes/:name",
       "component": { "$codeRef": "NodeDetail" }
     }
   },
   {
     "type": "console.page/route",
     "properties": {
-      "path": "/redfish-insights/events",
+      "path": "/baremetal-insights/events",
       "component": { "$codeRef": "HealthEvents" }
     }
   }
@@ -384,7 +384,7 @@ The current plugin has three navigation items under Compute:
 - Firmware Nodes
 - Firmware Updates
 
-These will be removed and replaced by the new "Redfish Insights" section. Firmware visibility moves to the Node Detail "Firmware" tab, with a summary count on the Overview dashboard.
+These will be removed and replaced by the new "BareMetal Insights" section. Firmware visibility moves to the Node Detail "Firmware" tab, with a summary count on the Overview dashboard.
 
 ---
 
@@ -402,5 +402,5 @@ These will be removed and replaced by the new "Redfish Insights" section. Firmwa
 
 1. **Backend API extensions** - Add health, thermal, power, events endpoints
 2. **New page components** - Overview, Nodes list, Health Events, Node Detail with tabs
-3. **Navigation restructure** - New Redfish Insights section, remove old Firmware nav
+3. **Navigation restructure** - New BareMetal Insights section, remove old Firmware nav
 4. **Testing and polish** - End-to-end testing, error handling, loading states

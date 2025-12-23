@@ -161,7 +161,7 @@ git commit -m "feat: add /metrics endpoint for Prometheus scraping"
 
 Add import:
 ```go
-"github.com/cragr/openshift-redfish-insights/internal/metrics"
+"github.com/cragr/openshift-baremetal-insights/internal/metrics"
 ```
 
 In the scan loop, after successful firmware fetch:
@@ -191,16 +191,16 @@ git commit -m "feat: record metrics for firmware scan operations"
 ### Task 5: Helm Chart Scaffolding
 
 **Files:**
-- Create: `helm/openshift-redfish-insights/Chart.yaml`
-- Create: `helm/openshift-redfish-insights/values.yaml`
-- Create: `helm/openshift-redfish-insights/templates/_helpers.tpl`
+- Create: `helm/openshift-baremetal-insights/Chart.yaml`
+- Create: `helm/openshift-baremetal-insights/values.yaml`
+- Create: `helm/openshift-baremetal-insights/templates/_helpers.tpl`
 
 **Step 1: Create Chart.yaml**
 
 ```yaml
-# helm/openshift-redfish-insights/Chart.yaml
+# helm/openshift-baremetal-insights/Chart.yaml
 apiVersion: v2
-name: openshift-redfish-insights
+name: openshift-baremetal-insights
 description: Firmware visibility for Dell servers in OpenShift
 type: application
 version: 0.1.0
@@ -217,14 +217,14 @@ maintainers:
 **Step 2: Create values.yaml**
 
 ```yaml
-# helm/openshift-redfish-insights/values.yaml
+# helm/openshift-baremetal-insights/values.yaml
 namespace:
   create: true
-  name: openshift-redfish-insights
+  name: openshift-baremetal-insights
 
 backend:
   image:
-    repository: quay.io/cragr/openshift-redfish-insights
+    repository: quay.io/cragr/openshift-baremetal-insights
     tag: latest
     pullPolicy: IfNotPresent
   replicas: 1
@@ -245,7 +245,7 @@ backend:
 
 plugin:
   image:
-    repository: quay.io/cragr/redfish-insights-plugin
+    repository: quay.io/cragr/baremetal-insights-plugin
     tag: latest
     pullPolicy: IfNotPresent
   replicas: 1
@@ -268,18 +268,18 @@ metrics:
 **Step 3: Create _helpers.tpl**
 
 ```yaml
-# helm/openshift-redfish-insights/templates/_helpers.tpl
+# helm/openshift-baremetal-insights/templates/_helpers.tpl
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "redfish-insights.name" -}}
+{{- define "baremetal-insights.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
 */}}
-{{- define "redfish-insights.fullname" -}}
+{{- define "baremetal-insights.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -295,9 +295,9 @@ Create a default fully qualified app name.
 {{/*
 Common labels
 */}}
-{{- define "redfish-insights.labels" -}}
+{{- define "baremetal-insights.labels" -}}
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-app.kubernetes.io/name: {{ include "redfish-insights.name" . }}
+app.kubernetes.io/name: {{ include "baremetal-insights.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
@@ -306,8 +306,8 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Backend selector labels
 */}}
-{{- define "redfish-insights.backend.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "redfish-insights.name" . }}
+{{- define "baremetal-insights.backend.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "baremetal-insights.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: backend
 {{- end }}
@@ -315,8 +315,8 @@ app.kubernetes.io/component: backend
 {{/*
 Plugin selector labels
 */}}
-{{- define "redfish-insights.plugin.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "redfish-insights.name" . }}
+{{- define "baremetal-insights.plugin.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "baremetal-insights.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/component: plugin
 {{- end }}
@@ -334,49 +334,49 @@ git commit -m "feat(helm): add chart scaffolding with values and helpers"
 ### Task 6: Helm Backend Templates
 
 **Files:**
-- Create: `helm/openshift-redfish-insights/templates/namespace.yaml`
-- Create: `helm/openshift-redfish-insights/templates/backend-serviceaccount.yaml`
-- Create: `helm/openshift-redfish-insights/templates/backend-clusterrole.yaml`
-- Create: `helm/openshift-redfish-insights/templates/backend-clusterrolebinding.yaml`
+- Create: `helm/openshift-baremetal-insights/templates/namespace.yaml`
+- Create: `helm/openshift-baremetal-insights/templates/backend-serviceaccount.yaml`
+- Create: `helm/openshift-baremetal-insights/templates/backend-clusterrole.yaml`
+- Create: `helm/openshift-baremetal-insights/templates/backend-clusterrolebinding.yaml`
 
 **Step 1: Create namespace.yaml**
 
 ```yaml
-# helm/openshift-redfish-insights/templates/namespace.yaml
+# helm/openshift-baremetal-insights/templates/namespace.yaml
 {{- if .Values.namespace.create }}
 apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ .Values.namespace.name }}
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
 {{- end }}
 ```
 
 **Step 2: Create backend-serviceaccount.yaml**
 
 ```yaml
-# helm/openshift-redfish-insights/templates/backend-serviceaccount.yaml
+# helm/openshift-baremetal-insights/templates/backend-serviceaccount.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ include "redfish-insights.fullname" . }}-backend
+  name: {{ include "baremetal-insights.fullname" . }}-backend
   namespace: {{ .Values.namespace.name }}
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
     app.kubernetes.io/component: backend
 ```
 
 **Step 3: Create backend-clusterrole.yaml**
 
 ```yaml
-# helm/openshift-redfish-insights/templates/backend-clusterrole.yaml
+# helm/openshift-baremetal-insights/templates/backend-clusterrole.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ include "redfish-insights.fullname" . }}-backend
+  name: {{ include "baremetal-insights.fullname" . }}-backend
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
 rules:
   - apiGroups: ["metal3.io"]
     resources: ["baremetalhosts"]
@@ -390,27 +390,27 @@ rules:
 **Step 4: Create backend-clusterrolebinding.yaml**
 
 ```yaml
-# helm/openshift-redfish-insights/templates/backend-clusterrolebinding.yaml
+# helm/openshift-baremetal-insights/templates/backend-clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ include "redfish-insights.fullname" . }}-backend
+  name: {{ include "baremetal-insights.fullname" . }}-backend
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ include "redfish-insights.fullname" . }}-backend
+  name: {{ include "baremetal-insights.fullname" . }}-backend
 subjects:
   - kind: ServiceAccount
-    name: {{ include "redfish-insights.fullname" . }}-backend
+    name: {{ include "baremetal-insights.fullname" . }}-backend
     namespace: {{ .Values.namespace.name }}
 ```
 
 **Step 5: Commit**
 
 ```bash
-git add helm/openshift-redfish-insights/templates/
+git add helm/openshift-baremetal-insights/templates/
 git commit -m "feat(helm): add namespace and RBAC templates"
 ```
 
@@ -419,21 +419,21 @@ git commit -m "feat(helm): add namespace and RBAC templates"
 ### Task 7: Helm Backend Deployment and Service
 
 **Files:**
-- Create: `helm/openshift-redfish-insights/templates/backend-configmap.yaml`
-- Create: `helm/openshift-redfish-insights/templates/backend-deployment.yaml`
-- Create: `helm/openshift-redfish-insights/templates/backend-service.yaml`
+- Create: `helm/openshift-baremetal-insights/templates/backend-configmap.yaml`
+- Create: `helm/openshift-baremetal-insights/templates/backend-deployment.yaml`
+- Create: `helm/openshift-baremetal-insights/templates/backend-service.yaml`
 
 **Step 1: Create backend-configmap.yaml**
 
 ```yaml
-# helm/openshift-redfish-insights/templates/backend-configmap.yaml
+# helm/openshift-baremetal-insights/templates/backend-configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "redfish-insights.fullname" . }}-backend
+  name: {{ include "baremetal-insights.fullname" . }}-backend
   namespace: {{ .Values.namespace.name }}
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
     app.kubernetes.io/component: backend
 data:
   POLL_INTERVAL: {{ .Values.backend.config.pollInterval | quote }}
@@ -445,26 +445,26 @@ data:
 **Step 2: Create backend-deployment.yaml**
 
 ```yaml
-# helm/openshift-redfish-insights/templates/backend-deployment.yaml
+# helm/openshift-baremetal-insights/templates/backend-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "redfish-insights.fullname" . }}-backend
+  name: {{ include "baremetal-insights.fullname" . }}-backend
   namespace: {{ .Values.namespace.name }}
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
     app.kubernetes.io/component: backend
 spec:
   replicas: {{ .Values.backend.replicas }}
   selector:
     matchLabels:
-      {{- include "redfish-insights.backend.selectorLabels" . | nindent 6 }}
+      {{- include "baremetal-insights.backend.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "redfish-insights.backend.selectorLabels" . | nindent 8 }}
+        {{- include "baremetal-insights.backend.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "redfish-insights.fullname" . }}-backend
+      serviceAccountName: {{ include "baremetal-insights.fullname" . }}-backend
       containers:
         - name: backend
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
@@ -475,7 +475,7 @@ spec:
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: {{ include "redfish-insights.fullname" . }}-backend
+                name: {{ include "baremetal-insights.fullname" . }}-backend
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
           livenessProbe:
@@ -495,14 +495,14 @@ spec:
 **Step 3: Create backend-service.yaml**
 
 ```yaml
-# helm/openshift-redfish-insights/templates/backend-service.yaml
+# helm/openshift-baremetal-insights/templates/backend-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "redfish-insights.fullname" . }}-backend
+  name: {{ include "baremetal-insights.fullname" . }}-backend
   namespace: {{ .Values.namespace.name }}
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
     app.kubernetes.io/component: backend
 spec:
   type: ClusterIP
@@ -512,13 +512,13 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "redfish-insights.backend.selectorLabels" . | nindent 4 }}
+    {{- include "baremetal-insights.backend.selectorLabels" . | nindent 4 }}
 ```
 
 **Step 4: Commit**
 
 ```bash
-git add helm/openshift-redfish-insights/templates/
+git add helm/openshift-baremetal-insights/templates/
 git commit -m "feat(helm): add backend deployment, service, and configmap"
 ```
 
@@ -527,31 +527,31 @@ git commit -m "feat(helm): add backend deployment, service, and configmap"
 ### Task 8: Helm Plugin Templates
 
 **Files:**
-- Create: `helm/openshift-redfish-insights/templates/plugin-deployment.yaml`
-- Create: `helm/openshift-redfish-insights/templates/plugin-service.yaml`
-- Create: `helm/openshift-redfish-insights/templates/plugin-consoleplugin.yaml`
+- Create: `helm/openshift-baremetal-insights/templates/plugin-deployment.yaml`
+- Create: `helm/openshift-baremetal-insights/templates/plugin-service.yaml`
+- Create: `helm/openshift-baremetal-insights/templates/plugin-consoleplugin.yaml`
 
 **Step 1: Create plugin-deployment.yaml**
 
 ```yaml
-# helm/openshift-redfish-insights/templates/plugin-deployment.yaml
+# helm/openshift-baremetal-insights/templates/plugin-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "redfish-insights.fullname" . }}-plugin
+  name: {{ include "baremetal-insights.fullname" . }}-plugin
   namespace: {{ .Values.namespace.name }}
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
     app.kubernetes.io/component: plugin
 spec:
   replicas: {{ .Values.plugin.replicas }}
   selector:
     matchLabels:
-      {{- include "redfish-insights.plugin.selectorLabels" . | nindent 6 }}
+      {{- include "baremetal-insights.plugin.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "redfish-insights.plugin.selectorLabels" . | nindent 8 }}
+        {{- include "baremetal-insights.plugin.selectorLabels" . | nindent 8 }}
     spec:
       containers:
         - name: plugin
@@ -570,24 +570,24 @@ spec:
       volumes:
         - name: plugin-serving-cert
           secret:
-            secretName: {{ include "redfish-insights.fullname" . }}-plugin-cert
+            secretName: {{ include "baremetal-insights.fullname" . }}-plugin-cert
             defaultMode: 420
 ```
 
 **Step 2: Create plugin-service.yaml**
 
 ```yaml
-# helm/openshift-redfish-insights/templates/plugin-service.yaml
+# helm/openshift-baremetal-insights/templates/plugin-service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "redfish-insights.fullname" . }}-plugin
+  name: {{ include "baremetal-insights.fullname" . }}-plugin
   namespace: {{ .Values.namespace.name }}
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
     app.kubernetes.io/component: plugin
   annotations:
-    service.beta.openshift.io/serving-cert-secret-name: {{ include "redfish-insights.fullname" . }}-plugin-cert
+    service.beta.openshift.io/serving-cert-secret-name: {{ include "baremetal-insights.fullname" . }}-plugin-cert
 spec:
   type: ClusterIP
   ports:
@@ -596,34 +596,34 @@ spec:
       protocol: TCP
       name: https
   selector:
-    {{- include "redfish-insights.plugin.selectorLabels" . | nindent 4 }}
+    {{- include "baremetal-insights.plugin.selectorLabels" . | nindent 4 }}
 ```
 
 **Step 3: Create plugin-consoleplugin.yaml**
 
 ```yaml
-# helm/openshift-redfish-insights/templates/plugin-consoleplugin.yaml
+# helm/openshift-baremetal-insights/templates/plugin-consoleplugin.yaml
 apiVersion: console.openshift.io/v1
 kind: ConsolePlugin
 metadata:
-  name: redfish-insights-plugin
+  name: baremetal-insights-plugin
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
 spec:
   displayName: "Firmware Insights"
   backend:
     type: Service
     service:
-      name: {{ include "redfish-insights.fullname" . }}-plugin
+      name: {{ include "baremetal-insights.fullname" . }}-plugin
       namespace: {{ .Values.namespace.name }}
       port: {{ .Values.plugin.service.port }}
       basePath: "/"
   proxy:
-    - alias: redfish-insights
+    - alias: baremetal-insights
       endpoint:
         type: Service
         service:
-          name: {{ include "redfish-insights.fullname" . }}-backend
+          name: {{ include "baremetal-insights.fullname" . }}-backend
           namespace: {{ .Values.namespace.name }}
           port: {{ .Values.backend.service.port }}
       authorize: true
@@ -632,7 +632,7 @@ spec:
 **Step 4: Commit**
 
 ```bash
-git add helm/openshift-redfish-insights/templates/
+git add helm/openshift-baremetal-insights/templates/
 git commit -m "feat(helm): add plugin deployment, service, and consoleplugin"
 ```
 
@@ -641,25 +641,25 @@ git commit -m "feat(helm): add plugin deployment, service, and consoleplugin"
 ### Task 9: Helm ServiceMonitor (Optional Metrics)
 
 **Files:**
-- Create: `helm/openshift-redfish-insights/templates/backend-servicemonitor.yaml`
+- Create: `helm/openshift-baremetal-insights/templates/backend-servicemonitor.yaml`
 
 **Step 1: Create backend-servicemonitor.yaml**
 
 ```yaml
-# helm/openshift-redfish-insights/templates/backend-servicemonitor.yaml
+# helm/openshift-baremetal-insights/templates/backend-servicemonitor.yaml
 {{- if .Values.metrics.enabled }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "redfish-insights.fullname" . }}-backend
+  name: {{ include "baremetal-insights.fullname" . }}-backend
   namespace: {{ .Values.namespace.name }}
   labels:
-    {{- include "redfish-insights.labels" . | nindent 4 }}
+    {{- include "baremetal-insights.labels" . | nindent 4 }}
     app.kubernetes.io/component: backend
 spec:
   selector:
     matchLabels:
-      {{- include "redfish-insights.backend.selectorLabels" . | nindent 6 }}
+      {{- include "baremetal-insights.backend.selectorLabels" . | nindent 6 }}
   endpoints:
     - port: http
       path: {{ .Values.metrics.path }}
@@ -669,16 +669,16 @@ spec:
 
 **Step 2: Validate helm template renders**
 
-Run: `helm template test helm/openshift-redfish-insights/`
+Run: `helm template test helm/openshift-baremetal-insights/`
 Expected: Valid YAML output without errors
 
-Run: `helm template test helm/openshift-redfish-insights/ --set metrics.enabled=true | grep -A 10 ServiceMonitor`
+Run: `helm template test helm/openshift-baremetal-insights/ --set metrics.enabled=true | grep -A 10 ServiceMonitor`
 Expected: ServiceMonitor resource appears
 
 **Step 3: Commit**
 
 ```bash
-git add helm/openshift-redfish-insights/templates/
+git add helm/openshift-baremetal-insights/templates/
 git commit -m "feat(helm): add optional ServiceMonitor for Prometheus"
 ```
 
@@ -694,13 +694,13 @@ git commit -m "feat(helm): add optional ServiceMonitor for Prometheus"
 ```makefile
 .PHONY: build run test clean lint plugin-build plugin-test images push helm-package helm-install all
 
-BINARY_NAME=openshift-redfish-insights
+BINARY_NAME=openshift-baremetal-insights
 GO=go
 
 # Image configuration
 REGISTRY ?= quay.io/cragr
-BACKEND_IMAGE ?= $(REGISTRY)/openshift-redfish-insights
-PLUGIN_IMAGE ?= $(REGISTRY)/redfish-insights-plugin
+BACKEND_IMAGE ?= $(REGISTRY)/openshift-baremetal-insights
+PLUGIN_IMAGE ?= $(REGISTRY)/baremetal-insights-plugin
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
 
 # Go targets
@@ -749,17 +749,17 @@ push: push-backend push-plugin
 
 # Helm targets
 helm-template:
-	helm template redfish-insights helm/openshift-redfish-insights/
+	helm template baremetal-insights helm/openshift-baremetal-insights/
 
 helm-package:
-	helm package helm/openshift-redfish-insights/
+	helm package helm/openshift-baremetal-insights/
 
 helm-install:
-	helm upgrade --install redfish-insights helm/openshift-redfish-insights/ \
-		--namespace redfish-insights --create-namespace
+	helm upgrade --install baremetal-insights helm/openshift-baremetal-insights/ \
+		--namespace baremetal-insights --create-namespace
 
 helm-uninstall:
-	helm uninstall redfish-insights --namespace redfish-insights
+	helm uninstall baremetal-insights --namespace baremetal-insights
 
 # Combined targets
 all: build plugin-build
@@ -823,7 +823,7 @@ git commit -m "feat: add /healthz endpoint for liveness/readiness probes"
 **Step 1: Create comprehensive README**
 
 ```markdown
-# OpenShift Redfish Insights
+# OpenShift BareMetal Insights
 
 Kubernetes-native firmware visibility for Dell servers in OpenShift. Discovers bare metal nodes via BareMetalHost CRDs, queries iDRAC firmware inventory via Redfish API, and compares against Dell's firmware catalog to show available updates.
 
@@ -847,16 +847,16 @@ Kubernetes-native firmware visibility for Dell servers in OpenShift. Discovers b
 
 ```bash
 # Add the Helm repository (if published)
-# helm repo add redfish-insights https://cragr.github.io/openshift-redfish-insights
+# helm repo add baremetal-insights https://cragr.github.io/openshift-baremetal-insights
 
 # Install from local chart
-helm upgrade --install redfish-insights helm/openshift-redfish-insights/ \
-  --namespace redfish-insights \
+helm upgrade --install baremetal-insights helm/openshift-baremetal-insights/ \
+  --namespace baremetal-insights \
   --create-namespace
 
 # Enable the console plugin
 oc patch consoles.operator.openshift.io cluster \
-  --patch '{"spec":{"plugins":["redfish-insights-plugin"]}}' \
+  --patch '{"spec":{"plugins":["baremetal-insights-plugin"]}}' \
   --type=merge
 ```
 
@@ -864,7 +864,7 @@ oc patch consoles.operator.openshift.io cluster \
 
 ```bash
 # Check pods are running
-oc get pods -n redfish-insights
+oc get pods -n baremetal-insights
 
 # Check console plugin is registered
 oc get consoleplugins
@@ -874,7 +874,7 @@ oc get consoleplugins
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| `namespace.name` | `redfish-insights` | Namespace for deployment |
+| `namespace.name` | `baremetal-insights` | Namespace for deployment |
 | `backend.config.pollInterval` | `30m` | How often to scan iDRACs |
 | `backend.config.catalogRefresh` | `24h` | How often to fetch Dell catalog |
 | `backend.image.tag` | `latest` | Backend image tag |
@@ -884,7 +884,7 @@ oc get consoleplugins
 ### Example: Custom polling interval
 
 ```bash
-helm upgrade --install redfish-insights helm/openshift-redfish-insights/ \
+helm upgrade --install baremetal-insights helm/openshift-baremetal-insights/ \
   --set backend.config.pollInterval=15m \
   --set metrics.enabled=true
 ```
@@ -971,12 +971,12 @@ cd console-plugin && npm run dev
 
 1. Check ConsolePlugin is registered: `oc get consoleplugins`
 2. Verify plugin is enabled: `oc get consoles.operator.openshift.io cluster -o yaml`
-3. Check plugin pod logs: `oc logs -n redfish-insights -l app.kubernetes.io/component=plugin`
+3. Check plugin pod logs: `oc logs -n baremetal-insights -l app.kubernetes.io/component=plugin`
 
 ### No nodes discovered
 
 1. Verify BareMetalHost CRDs exist: `oc get baremetalhosts -A`
-2. Check backend logs: `oc logs -n redfish-insights -l app.kubernetes.io/component=backend`
+2. Check backend logs: `oc logs -n baremetal-insights -l app.kubernetes.io/component=backend`
 3. Ensure backend has RBAC to read BareMetalHosts
 
 ### iDRAC connection failures
@@ -1052,10 +1052,10 @@ Expected: All tests PASS
 
 **Step 3: Validate Helm chart**
 
-Run: `helm lint helm/openshift-redfish-insights/`
+Run: `helm lint helm/openshift-baremetal-insights/`
 Expected: No errors
 
-Run: `helm template test helm/openshift-redfish-insights/`
+Run: `helm template test helm/openshift-baremetal-insights/`
 Expected: Valid YAML, no errors
 
 **Step 4: Build images (optional - requires podman)**

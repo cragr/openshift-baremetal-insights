@@ -335,7 +335,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 // XML structures for Dell catalog
@@ -472,7 +472,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 func TestCache_SetAndGet(t *testing.T) {
@@ -569,7 +569,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 // Cache stores catalog entries with TTL
@@ -763,7 +763,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 // Service manages catalog fetching, parsing, and caching
@@ -880,11 +880,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cragr/openshift-redfish-insights/internal/catalog"
-	"github.com/cragr/openshift-redfish-insights/internal/discovery"
-	"github.com/cragr/openshift-redfish-insights/internal/models"
-	"github.com/cragr/openshift-redfish-insights/internal/redfish"
-	"github.com/cragr/openshift-redfish-insights/internal/store"
+	"github.com/cragr/openshift-baremetal-insights/internal/catalog"
+	"github.com/cragr/openshift-baremetal-insights/internal/discovery"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/redfish"
+	"github.com/cragr/openshift-baremetal-insights/internal/store"
 )
 ```
 
@@ -1227,7 +1227,7 @@ catalogTTL := getEnvDuration("CATALOG_TTL", 24*time.Hour)
 
 Add import for catalog:
 ```go
-"github.com/cragr/openshift-redfish-insights/internal/catalog"
+"github.com/cragr/openshift-baremetal-insights/internal/catalog"
 ```
 
 Create catalog service:
@@ -1295,7 +1295,7 @@ Expected: All tests pass
 
 Run:
 ```bash
-podman build -t openshift-redfish-insights:dev .
+podman build -t openshift-baremetal-insights:dev .
 ```
 
 Expected: Image builds successfully

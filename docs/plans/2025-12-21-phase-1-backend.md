@@ -22,8 +22,8 @@
 
 Run:
 ```bash
-cd /Users/crobins1/workspace/git/cragr/openshift-redfish-insights/.worktrees/phase-1-backend
-go mod init github.com/cragr/openshift-redfish-insights
+cd /Users/crobins1/workspace/git/cragr/openshift-baremetal-insights/.worktrees/phase-1-backend
+go mod init github.com/cragr/openshift-baremetal-insights
 ```
 
 Expected: `go.mod` created
@@ -42,7 +42,7 @@ import (
 )
 
 func main() {
-	log.Println("Starting openshift-redfish-insights server...")
+	log.Println("Starting openshift-baremetal-insights server...")
 
 	// Wait for shutdown signal
 	sigCh := make(chan os.Signal, 1)
@@ -59,7 +59,7 @@ Create `Makefile`:
 ```makefile
 .PHONY: build run test clean
 
-BINARY_NAME=openshift-redfish-insights
+BINARY_NAME=openshift-baremetal-insights
 GO=go
 
 build:
@@ -91,13 +91,13 @@ COPY go.mod go.sum* ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o /openshift-redfish-insights ./cmd/server
+RUN CGO_ENABLED=0 GOOS=linux go build -o /openshift-baremetal-insights ./cmd/server
 
 FROM alpine:3.19
 RUN apk --no-cache add ca-certificates
-COPY --from=builder /openshift-redfish-insights /openshift-redfish-insights
+COPY --from=builder /openshift-baremetal-insights /openshift-baremetal-insights
 
-ENTRYPOINT ["/openshift-redfish-insights"]
+ENTRYPOINT ["/openshift-baremetal-insights"]
 ```
 
 **Step 5: Verify build works**
@@ -107,7 +107,7 @@ Run:
 make build
 ```
 
-Expected: Binary created at `bin/openshift-redfish-insights`
+Expected: Binary created at `bin/openshift-baremetal-insights`
 
 **Step 6: Commit**
 
@@ -270,7 +270,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 func TestStore_SetAndGetNode(t *testing.T) {
@@ -339,7 +339,7 @@ package store
 import (
 	"sync"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 // Store provides thread-safe in-memory storage for node firmware data
@@ -435,8 +435,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
-	"github.com/cragr/openshift-redfish-insights/internal/store"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/store"
 )
 
 func TestListNodesHandler(t *testing.T) {
@@ -533,7 +533,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/cragr/openshift-redfish-insights/internal/store"
+	"github.com/cragr/openshift-baremetal-insights/internal/store"
 )
 
 // Server is the REST API server
@@ -735,7 +735,7 @@ import (
 	"github.com/stmcginnis/gofish"
 	"github.com/stmcginnis/gofish/redfish"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 // RawFirmware represents raw firmware data from Redfish
@@ -997,7 +997,7 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 
-	"github.com/cragr/openshift-redfish-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
 )
 
 var bmhGVR = schema.GroupVersionResource{
@@ -1186,10 +1186,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cragr/openshift-redfish-insights/internal/discovery"
-	"github.com/cragr/openshift-redfish-insights/internal/models"
-	"github.com/cragr/openshift-redfish-insights/internal/redfish"
-	"github.com/cragr/openshift-redfish-insights/internal/store"
+	"github.com/cragr/openshift-baremetal-insights/internal/discovery"
+	"github.com/cragr/openshift-baremetal-insights/internal/models"
+	"github.com/cragr/openshift-baremetal-insights/internal/redfish"
+	"github.com/cragr/openshift-baremetal-insights/internal/store"
 )
 
 // Poller periodically polls iDRACs for firmware inventory
@@ -1378,15 +1378,15 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 
-	"github.com/cragr/openshift-redfish-insights/internal/api"
-	"github.com/cragr/openshift-redfish-insights/internal/discovery"
-	"github.com/cragr/openshift-redfish-insights/internal/poller"
-	"github.com/cragr/openshift-redfish-insights/internal/redfish"
-	"github.com/cragr/openshift-redfish-insights/internal/store"
+	"github.com/cragr/openshift-baremetal-insights/internal/api"
+	"github.com/cragr/openshift-baremetal-insights/internal/discovery"
+	"github.com/cragr/openshift-baremetal-insights/internal/poller"
+	"github.com/cragr/openshift-baremetal-insights/internal/redfish"
+	"github.com/cragr/openshift-baremetal-insights/internal/store"
 )
 
 func main() {
-	log.Println("Starting openshift-redfish-insights server...")
+	log.Println("Starting openshift-baremetal-insights server...")
 
 	// Get configuration from environment
 	addr := getEnv("LISTEN_ADDR", ":8080")
@@ -1524,7 +1524,7 @@ Expected: All tests pass
 
 Run:
 ```bash
-docker build -t openshift-redfish-insights:dev .
+docker build -t openshift-baremetal-insights:dev .
 ```
 
 Expected: Image builds successfully

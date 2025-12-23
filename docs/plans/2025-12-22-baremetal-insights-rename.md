@@ -2,7 +2,7 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Rename the project from "openshift-redfish-insights" to "openshift-baremetal-insights" across all code, configs, and documentation.
+**Goal:** Rename the project from "openshift-baremetal-insights" to "openshift-baremetal-insights" across all code, configs, and documentation.
 
 **Architecture:** Global find-and-replace across Go module, Helm chart, console plugin, and documentation. The internal `internal/redfish/` package stays unchanged as it describes the technology, not the product.
 
@@ -26,7 +26,7 @@ module github.com/cragr/openshift-baremetal-insights
 
 Run:
 ```bash
-find . -name "*.go" -exec sed -i '' 's|github.com/cragr/openshift-redfish-insights|github.com/cragr/openshift-baremetal-insights|g' {} \;
+find . -name "*.go" -exec sed -i '' 's|github.com/cragr/openshift-baremetal-insights|github.com/cragr/openshift-baremetal-insights|g' {} \;
 ```
 
 **Step 3: Run go mod tidy**
@@ -56,20 +56,20 @@ git commit -m "refactor: rename Go module to openshift-baremetal-insights"
 ### Task 2: Rename Helm Chart Directory and Update Chart.yaml
 
 **Files:**
-- Rename: `helm/openshift-redfish-insights/` → `helm/openshift-baremetal-insights/`
+- Rename: `helm/openshift-baremetal-insights/` → `helm/openshift-baremetal-insights/`
 - Modify: `helm/openshift-baremetal-insights/Chart.yaml`
 
 **Step 1: Rename Helm chart directory**
 
 Run:
 ```bash
-mv helm/openshift-redfish-insights helm/openshift-baremetal-insights
+mv helm/openshift-baremetal-insights helm/openshift-baremetal-insights
 ```
 
 **Step 2: Update Chart.yaml**
 
 Edit `helm/openshift-baremetal-insights/Chart.yaml`:
-- Change `name: openshift-redfish-insights` → `name: openshift-baremetal-insights`
+- Change `name: openshift-baremetal-insights` → `name: openshift-baremetal-insights`
 - Change description to reference "BareMetal Insights"
 
 **Step 3: Commit**
@@ -90,7 +90,7 @@ git commit -m "refactor: rename Helm chart to openshift-baremetal-insights"
 
 Change:
 ```yaml
-namespace: redfish-insights
+namespace: baremetal-insights
 ```
 To:
 ```yaml
@@ -103,7 +103,7 @@ Change:
 ```yaml
 backend:
   image:
-    repository: quay.io/cragr/openshift-redfish-insights
+    repository: quay.io/cragr/openshift-baremetal-insights
 ```
 To:
 ```yaml
@@ -116,7 +116,7 @@ Change plugin image:
 ```yaml
 plugin:
   image:
-    repository: quay.io/cragr/redfish-insights-plugin
+    repository: quay.io/cragr/baremetal-insights-plugin
 ```
 To:
 ```yaml
@@ -144,8 +144,8 @@ git commit -m "refactor: update Helm values for baremetal-insights"
 Run:
 ```bash
 cd helm/openshift-baremetal-insights/templates
-sed -i '' 's/redfish-insights/baremetal-insights/g' *.yaml
-sed -i '' 's/openshift-redfish-insights/openshift-baremetal-insights/g' *.yaml
+sed -i '' 's/baremetal-insights/baremetal-insights/g' *.yaml
+sed -i '' 's/openshift-baremetal-insights/openshift-baremetal-insights/g' *.yaml
 ```
 
 **Step 2: Verify Helm template renders**
@@ -174,7 +174,7 @@ git commit -m "refactor: update Helm templates for baremetal-insights"
 
 Change:
 ```json
-"name": "redfish-insights-plugin"
+"name": "baremetal-insights-plugin"
 ```
 To:
 ```json
@@ -200,8 +200,8 @@ git commit -m "refactor: rename console plugin package"
 Change:
 ```json
 {
-  "name": "redfish-insights-plugin",
-  "displayName": "Redfish Insights",
+  "name": "baremetal-insights-plugin",
+  "displayName": "BareMetal Insights",
 ```
 To:
 ```json
@@ -226,11 +226,11 @@ git commit -m "refactor: update plugin manifest for BareMetal Insights"
 
 **Step 1: Update navigation section name**
 
-Change `"name": "Redfish Insights"` → `"name": "BareMetal Insights"`
+Change `"name": "BareMetal Insights"` → `"name": "BareMetal Insights"`
 
 **Step 2: Update all route paths**
 
-Change all `/redfish-insights/` → `/baremetal-insights/`
+Change all `/baremetal-insights/` → `/baremetal-insights/`
 
 **Step 3: Commit**
 
@@ -256,7 +256,7 @@ git commit -m "refactor: update console extensions for baremetal-insights routes
 Run:
 ```bash
 cd console-plugin/src
-find . -name "*.tsx" -o -name "*.ts" | xargs sed -i '' 's|/redfish-insights/|/baremetal-insights/|g'
+find . -name "*.tsx" -o -name "*.ts" | xargs sed -i '' 's|/baremetal-insights/|/baremetal-insights/|g'
 ```
 
 **Step 2: Verify plugin builds**
@@ -285,8 +285,8 @@ git commit -m "refactor: update page routes for baremetal-insights"
 
 Change:
 ```makefile
-IMAGE_REPO ?= quay.io/cragr/openshift-redfish-insights
-PLUGIN_IMAGE_REPO ?= quay.io/cragr/redfish-insights-plugin
+IMAGE_REPO ?= quay.io/cragr/openshift-baremetal-insights
+PLUGIN_IMAGE_REPO ?= quay.io/cragr/baremetal-insights-plugin
 ```
 To:
 ```makefile
@@ -296,7 +296,7 @@ PLUGIN_IMAGE_REPO ?= quay.io/cragr/openshift-baremetal-insights-plugin
 
 **Step 2: Update Helm chart path references**
 
-Change any `helm/openshift-redfish-insights` → `helm/openshift-baremetal-insights`
+Change any `helm/openshift-baremetal-insights` → `helm/openshift-baremetal-insights`
 
 **Step 3: Commit**
 
@@ -315,8 +315,8 @@ git commit -m "refactor: update Makefile for baremetal-insights images"
 **Step 1: Update project name and references**
 
 - Change title to "OpenShift BareMetal Insights"
-- Update all `redfish-insights` → `baremetal-insights`
-- Update all `openshift-redfish-insights` → `openshift-baremetal-insights`
+- Update all `baremetal-insights` → `baremetal-insights`
+- Update all `openshift-baremetal-insights` → `openshift-baremetal-insights`
 - Update image references
 - Update Helm commands
 
@@ -339,9 +339,9 @@ git commit -m "docs: update README for BareMetal Insights rename"
 Run:
 ```bash
 cd docs/plans
-sed -i '' 's/redfish-insights/baremetal-insights/g' *.md
-sed -i '' 's/openshift-redfish-insights/openshift-baremetal-insights/g' *.md
-sed -i '' 's/Redfish Insights/BareMetal Insights/g' *.md
+sed -i '' 's/baremetal-insights/baremetal-insights/g' *.md
+sed -i '' 's/openshift-baremetal-insights/openshift-baremetal-insights/g' *.md
+sed -i '' 's/BareMetal Insights/BareMetal Insights/g' *.md
 ```
 
 **Step 2: Commit**
@@ -365,8 +365,8 @@ git commit -m "docs: update plan documents for BareMetal Insights rename"
 Run:
 ```bash
 cd console-plugin/deploy
-sed -i '' 's/redfish-insights/baremetal-insights/g' *.yaml
-sed -i '' 's/openshift-redfish-insights/openshift-baremetal-insights/g' *.yaml
+sed -i '' 's/baremetal-insights/baremetal-insights/g' *.yaml
+sed -i '' 's/openshift-baremetal-insights/openshift-baremetal-insights/g' *.yaml
 ```
 
 **Step 2: Commit**
@@ -409,7 +409,7 @@ Expected: No errors
 
 Run:
 ```bash
-grep -r "redfish-insights" --include="*.go" --include="*.yaml" --include="*.json" --include="*.tsx" --include="*.ts" --include="Makefile" . | grep -v node_modules | grep -v "internal/redfish"
+grep -r "baremetal-insights" --include="*.go" --include="*.yaml" --include="*.json" --include="*.tsx" --include="*.ts" --include="Makefile" . | grep -v node_modules | grep -v "internal/redfish"
 ```
 Expected: No results (except possibly docs referencing the old name historically)
 
@@ -434,8 +434,8 @@ git commit -m "refactor: fix remaining baremetal-insights references"
 Run:
 ```bash
 if [ -f CLAUDE.md ]; then
-  sed -i '' 's/redfish-insights/baremetal-insights/g' CLAUDE.md
-  sed -i '' 's/openshift-redfish-insights/openshift-baremetal-insights/g' CLAUDE.md
+  sed -i '' 's/baremetal-insights/baremetal-insights/g' CLAUDE.md
+  sed -i '' 's/openshift-baremetal-insights/openshift-baremetal-insights/g' CLAUDE.md
   git add CLAUDE.md
   git commit -m "docs: update CLAUDE.md for BareMetal Insights"
 fi
@@ -448,7 +448,7 @@ fi
 After code changes are complete and merged:
 
 1. **Rename GitHub repo** (in GitHub Settings → General)
-   - `openshift-redfish-insights` → `openshift-baremetal-insights`
+   - `openshift-baremetal-insights` → `openshift-baremetal-insights`
 
 2. **Update local git remote**
    ```bash
@@ -468,8 +468,8 @@ After code changes are complete and merged:
 5. **Deploy to cluster**
    ```bash
    # Uninstall old release
-   helm uninstall redfish-insights -n redfish-insights
-   kubectl delete namespace redfish-insights
+   helm uninstall baremetal-insights -n baremetal-insights
+   kubectl delete namespace baremetal-insights
 
    # Install new release
    helm install baremetal-insights helm/openshift-baremetal-insights -n baremetal-insights --create-namespace

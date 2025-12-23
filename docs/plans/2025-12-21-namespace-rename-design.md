@@ -2,7 +2,7 @@
 
 ## Overview
 
-Rename the Kubernetes namespace from `openshift-redfish-insights` to `redfish-insights` because namespaces starting with "openshift" are reserved.
+Rename the Kubernetes namespace from `openshift-baremetal-insights` to `baremetal-insights` because namespaces starting with "openshift" are reserved.
 
 ## Scope
 
@@ -13,47 +13,47 @@ Rename the Kubernetes namespace from `openshift-redfish-insights` to `redfish-in
 - Documentation references
 
 **Out of scope (unchanged):**
-- Binary name (`openshift-redfish-insights`)
-- Container image names (`quay.io/cragr/openshift-redfish-insights`)
-- Helm chart directory name (`helm/openshift-redfish-insights/`)
+- Binary name (`openshift-baremetal-insights`)
+- Container image names (`quay.io/cragr/openshift-baremetal-insights`)
+- Helm chart directory name (`helm/openshift-baremetal-insights/`)
 - Go code (project name references)
 
 ## Files to Modify
 
 | File | Change |
 |------|--------|
-| `helm/openshift-redfish-insights/values.yaml` | Default namespace: `openshift-redfish-insights` → `redfish-insights` |
+| `helm/openshift-baremetal-insights/values.yaml` | Default namespace: `openshift-baremetal-insights` → `baremetal-insights` |
 | `Makefile` | `--namespace` flags in helm upgrade/uninstall |
 | `README.md` | Installation instructions and service references |
 | `docs/plans/*.md` | Design docs with namespace references |
 
 ## Changes
 
-### helm/openshift-redfish-insights/values.yaml
+### helm/openshift-baremetal-insights/values.yaml
 
 ```yaml
 # From:
-namespace: openshift-redfish-insights
+namespace: openshift-baremetal-insights
 
 # To:
-namespace: redfish-insights
+namespace: baremetal-insights
 ```
 
 ### Makefile
 
 ```makefile
 # From:
---namespace openshift-redfish-insights
+--namespace openshift-baremetal-insights
 
 # To:
---namespace redfish-insights
+--namespace baremetal-insights
 ```
 
 ### Documentation
 
 All references to:
-- Namespace `openshift-redfish-insights` → `redfish-insights`
-- Service DNS `*.openshift-redfish-insights.svc` → `*.redfish-insights.svc`
+- Namespace `openshift-baremetal-insights` → `baremetal-insights`
+- Service DNS `*.openshift-baremetal-insights.svc` → `*.baremetal-insights.svc`
 
 ## Notes
 

@@ -146,7 +146,7 @@ Extends OpenShift console via `ConsolePlugin` CR:
 ### Structure
 
 ```
-helm/openshift-redfish-insights/
+helm/openshift-baremetal-insights/
   Chart.yaml
   values.yaml
   templates/
@@ -164,7 +164,7 @@ helm/openshift-redfish-insights/
 ```yaml
 replicaCount: 1
 image:
-  repository: quay.io/yourorg/openshift-redfish-insights
+  repository: quay.io/yourorg/openshift-baremetal-insights
   tag: latest
 
 config:

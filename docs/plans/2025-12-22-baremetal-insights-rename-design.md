@@ -2,27 +2,27 @@
 
 ## Overview
 
-Rename the project from "openshift-redfish-insights" / "Redfish Insights" to "openshift-baremetal-insights" / "BareMetal Insights" for better user-facing branding. The underlying technology remains Redfish-focused.
+Rename the project from "openshift-baremetal-insights" / "BareMetal Insights" to "openshift-baremetal-insights" / "BareMetal Insights" for better user-facing branding. The underlying technology remains Redfish-focused.
 
 ## Scope of Changes
 
 ### Go Module & Imports
-- `go.mod`: `github.com/cragr/openshift-redfish-insights` → `github.com/cragr/openshift-baremetal-insights`
+- `go.mod`: `github.com/cragr/openshift-baremetal-insights` → `github.com/cragr/openshift-baremetal-insights`
 - All `import` statements across `.go` files
 
 ### Kubernetes Resources
-- Namespace: `redfish-insights` → `baremetal-insights`
-- All resource names containing `redfish-insights` → `baremetal-insights`
+- Namespace: `baremetal-insights` → `baremetal-insights`
+- All resource names containing `baremetal-insights` → `baremetal-insights`
 - Helm chart name and references
 
 ### Console Plugin
-- Menu item: "Redfish Insights" → "BareMetal Insights"
+- Menu item: "BareMetal Insights" → "BareMetal Insights"
 - Plugin name in `package.json` and `plugin-manifest.json`
-- URL paths: `/redfish-insights/*` → `/baremetal-insights/*`
+- URL paths: `/baremetal-insights/*` → `/baremetal-insights/*`
 
 ### Container Images
-- `quay.io/cragr/openshift-redfish-insights` → `quay.io/cragr/openshift-baremetal-insights`
-- `quay.io/cragr/redfish-insights-plugin` → `quay.io/cragr/openshift-baremetal-insights-plugin`
+- `quay.io/cragr/openshift-baremetal-insights` → `quay.io/cragr/openshift-baremetal-insights`
+- `quay.io/cragr/baremetal-insights-plugin` → `quay.io/cragr/openshift-baremetal-insights-plugin`
 
 ### Documentation
 - README.md
@@ -73,7 +73,7 @@ Internal package names (like `internal/redfish/`) remain unchanged since they de
 - `internal/store/*.go` - imports
 
 ### Helm Chart (10+ files)
-- Rename directory: `charts/openshift-redfish-insights/` → `charts/openshift-baremetal-insights/`
+- Rename directory: `charts/openshift-baremetal-insights/` → `charts/openshift-baremetal-insights/`
 - `Chart.yaml` - name, description
 - `values.yaml` - image repos, namespace default
 - All templates - resource names, labels, selectors
@@ -109,6 +109,6 @@ Internal package names (like `internal/redfish/`) remain unchanged since they de
 - API calls work through console proxy
 
 ### Cleanup
-- Remove old Helm release from `redfish-insights` namespace
+- Remove old Helm release from `baremetal-insights` namespace
 - Delete old namespace if empty
 - Old Quay.io repos can be deleted after confirming new ones work
