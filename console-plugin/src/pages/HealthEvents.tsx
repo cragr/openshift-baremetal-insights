@@ -130,7 +130,7 @@ export const HealthEvents: React.FC = () => {
                     <HealthStatusIcon status={event.severity} showLabel />
                   </Td>
                   <Td dataLabel="Node">
-                    <Link to={`/redfish-insights/nodes/${event.nodeName}`}>{event.nodeName}</Link>
+                    <Link to={`/baremetal-insights/nodes/${event.nodeName}`}>{event.nodeName}</Link>
                   </Td>
                   <Td dataLabel="Event">{event.message}</Td>
                   <Td dataLabel="Timestamp">{new Date(event.timestamp).toLocaleString()}</Td>
